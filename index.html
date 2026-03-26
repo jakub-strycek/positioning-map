@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeedScope® — Positioning Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f3f2ee;--sur:#fff;--sur2:#edece8;--bdr:rgba(0,0,0,.08);--bhi:rgba(0,0,0,.18);--tx:#1a1a2a;--mu:#88889a;--di:#ccccd8;--f:'DM Sans',sans-serif;--serif:'Instrument Serif',serif;--mono:'DM Mono',monospace}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font-family:var(--f);font-size:14px;line-height:1.6;display:flex;flex-direction:column}
+
+/* ── HEADER ────────────────────────────────────── */
+header{height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 22px;border-bottom:0.5px solid var(--bdr);background:var(--sur);gap:16px}
+.wm{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--mu);letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+
+/* TAB NAV */
+.tab-nav{display:flex;gap:2px;background:var(--bg);border:0.5px solid var(--bdr);border-radius:7px;padding:2px;flex-shrink:0}
+.tab-nav-btn{padding:4px 14px;border-radius:5px;border:none;background:transparent;font-family:var(--f);font-size:12px;font-weight:500;color:var(--mu);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.tab-nav-btn .tab-icon{font-size:11px;opacity:.7}
+.tab-nav-btn.active{background:var(--sur);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.tab-nav-btn.active .tab-icon{opacity:1}
+
+.hdr-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.lang-sw{display:flex;border:0.5px solid var(--bdr);border-radius:6px;overflow:hidden;background:var(--bg)}
+.lb{padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;border:none;font-family:var(--f);color:var(--mu);transition:background .12s,color .12s}
+.lb.on{background:var(--tx);color:#fff}
+.gear-wrap{position:relative}
+.gear-btn{width:28px;height:28px;border:0.5px solid var(--bdr);border-radius:6px;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.gear-btn:hover{background:var(--sur2)}
+.gear-panel{display:none;position:absolute;top:34px;right:0;width:290px;background:var(--sur);border:0.5px solid var(--bdr);border-radius:8px;padding:13px;box-shadow:0 4px 20px rgba(0,0,0,.09);z-index:200}
+.gear-panel.open{display:block}
+.glbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);display:block;margin-bottom:6px}
+.gnote{font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:9px}
+.gnote strong{color:var(--tx);font-weight:500}
+.gnote a{color:var(--mu)}
+.gkrow{display:flex;gap:6px}
+.gkrow input{flex:1;background:var(--bg);border:0.5px solid var(--bdr);border-radius:5px;padding:7px 9px;color:var(--tx);font-size:11px;font-family:monospace;outline:none}
+.gkrow input:focus{border-color:var(--bhi)}
+.gshow{padding:7px 10px;background:var(--sur2);border:0.5px solid var(--bdr);border-radius:5px;font-size:10.5px;color:var(--mu);cursor:pointer;font-family:var(--f);white-space:nowrap}
+
+/* ── TAB PANELS ─────────────────────────────────── */
+.tab-panel{flex:1;overflow:hidden;display:none}
+.tab-panel.active{display:flex;flex-direction:column}
+
+/* ── MAP TAB (v7) ───────────────────────────────── */
+#tabMap{flex-direction:row}
+.map-app{flex:1;display:grid;grid-template-columns:1fr 380px;overflow:hidden}
+.map-col{display:flex;align-items:center;justify-content:center;border-right:0.5px solid var(--bdr);background:var(--sur);position:relative;overflow:hidden}
+.map-hint{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--di);pointer-events:none;letter-spacing:.04em}
+.map-hint span{display:inline-block;padding:4px 12px;background:var(--bg);border-radius:100px;border:0.5px solid var(--bdr)}
+.map-svg-wrap{position:relative;width:520px;height:520px;cursor:crosshair;user-select:none;overflow:hidden}
+.map-svg-wrap svg{width:100%;height:100%}
+.info-col{overflow-y:auto;display:flex;flex-direction:column}
+.info-col::-webkit-scrollbar{width:3px}
+.info-col::-webkit-scrollbar-thumb{background:var(--di);border-radius:2px}
+.info-inner{padding:28px 28px 48px;flex:1}
+
+.idle-panel{display:flex;flex-direction:column;justify-content:center;height:100%;min-height:300px}
+.idle-eye{font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--mu);margin-bottom:16px}
+.idle-h{font-family:var(--serif);font-size:32px;font-weight:400;line-height:1.1;margin-bottom:14px}
+.idle-h em{font-style:italic}
+.idle-p{font-size:13px;color:var(--mu);line-height:1.75;margin-bottom:24px;max-width:300px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;opacity:.7}
+.axes-note{margin-top:20px;padding-top:16px;border-top:0.5px solid var(--bdr);font-size:11px;color:var(--di);line-height:1.6}
+.axes-row{display:flex;justify-content:space-between;margin-bottom:3px}
+
+.zone-panel{display:none;flex-direction:column}
+.zp-head{padding:18px 20px 14px;background:var(--sur);border-bottom:0.5px solid var(--bdr);position:sticky;top:0;z-index:10}
+.zp-tag{display:inline-flex;align-items:center;gap:6px;font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:4px;margin-bottom:9px}
+.zp-tag-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.zp-name{font-family:var(--serif);font-size:22px;font-weight:400;line-height:1.1;margin-bottom:3px}
+.zp-sub{font-size:11.5px;color:var(--mu);font-style:italic}
+.zp-body{padding:16px 20px}
+
+.iq-block{margin-bottom:16px}
+.iq-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.iq-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu)}
+.iq-val{font-family:var(--serif);font-size:16px}
+.iq-track{height:4px;background:var(--sur2);border-radius:2px;position:relative;overflow:hidden}
+.iq-fill{height:100%;border-radius:2px;transition:width .15s}
+.iq-ticks{display:flex;justify-content:space-between;margin-top:4px}
+.iq-tick{font-size:9px;color:var(--di)}
+.iq-note{margin-top:7px;font-size:11px;color:var(--mu);line-height:1.55;padding:8px 10px;background:var(--sur2);border-radius:6px}
+
+.blend-bar{margin-bottom:14px}
+.blend-track{height:6px;border-radius:3px;overflow:hidden;display:flex;margin:6px 0}
+.blend-seg1{border-radius:3px 0 0 3px}
+.blend-seg2{border-radius:0 3px 3px 0}
+.blend-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--mu)}
+
+.sec{margin-bottom:14px}
+.sec-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);margin-bottom:6px;display:block}
+.sec-txt{font-size:12.5px;color:var(--tx);line-height:1.65}
+.traits{display:flex;flex-wrap:wrap;gap:4px}
+.trait{font-size:11px;padding:3px 9px;border-radius:100px;border:0.5px solid}
+.tone-txt{font-size:12px;font-style:italic;color:var(--mu)}
+.say-list{list-style:none}
+.say-list li{font-size:11.5px;padding:4px 0 4px 12px;border-bottom:0.5px solid var(--bdr);position:relative;line-height:1.45;color:var(--tx)}
+.say-list li::before{content:'';position:absolute;left:0;top:10px;width:4px;height:4px;border-radius:50%}
+.say-list.do li::before{background:#2a9}
+.say-list.dont li{color:var(--mu)}
+.say-list.dont li::before{background:#c44}
+.say-list li:last-child{border-bottom:none}
+.brands-row{display:flex;flex-wrap:wrap;gap:4px}
+.brand-pill{font-size:11px;padding:3px 9px;border-radius:4px;background:var(--sur);border:0.5px solid var(--bdr);color:var(--tx)}
+.opp-box{background:var(--sur2);border:0.5px solid var(--bdr);border-radius:7px;padding:10px 12px;font-size:12px;line-height:1.6;color:var(--mu)}
+.opp-box strong{color:var(--tx);font-weight:500}
+.divider{height:0.5px;background:var(--bdr);margin:14px 0}
+
+.pin-section{padding:14px 20px;border-top:0.5px solid var(--bdr);background:var(--bg)}
+.pin-cta{width:100%;padding:10px;border-radius:7px;border:none;font-family:var(--f);font-size:13px;font-weight:500;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s}
+.pin-cta:hover{opacity:.86}
+.pin-cta.outline{background:transparent;border:0.5px solid var(--bdr);color:var(--mu);font-size:12px;margin-top:7px}
+.pin-cta.outline:hover{border-color:var(--bhi);color:var(--tx)}
+.to-analyzer-btn{width:100%;margin-top:7px;padding:8px 10px;border-radius:7px;border:0.5px solid var(--bdr);background:var(--sur);font-family:var(--f);font-size:11.5px;font-weight:500;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.to-analyzer-btn:hover{border-color:var(--bhi);color:var(--tx)}
+
+.form-section{padding:14px 20px;border-top:0.5px solid var(--bdr)}
+.inp-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);display:block;margin-bottom:5px}
+input[type=text],input[type=password],textarea{width:100%;background:var(--sur);border:0.5px solid var(--bdr);border-radius:6px;padding:8px 10px;color:var(--tx);font-family:var(--f);font-size:12.5px;outline:none;transition:border-color .2s;margin-bottom:9px}
+input[type=text]:focus,input[type=password]:focus,textarea:focus{border-color:var(--bhi)}
+textarea{resize:none;height:54px;margin-bottom:10px}
+.gen-btn{width:100%;padding:11px;border-radius:7px;border:none;font-family:var(--f);font-size:13px;font-weight:500;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s,transform .1s}
+.gen-btn:hover{opacity:.86;transform:translateY(-1px)}
+
+.result-section{padding:16px 20px 32px;border-top:0.5px solid var(--bdr)}
+.loading{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:12.5px;padding:8px 0}
+.spin{width:13px;height:13px;border:1.5px solid var(--di);border-top-color:var(--tx);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.res-body{font-size:13px;line-height:1.82;color:var(--tx)}
+.res-body h2{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--tx);margin:22px 0 7px;border-bottom:0.5px solid var(--bdr);padding-bottom:5px}
+.res-body h3{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.13em;color:var(--mu);margin:14px 0 5px}
+.res-body p{color:var(--tx);margin-bottom:7px;font-size:13px}
+.res-body ul,.res-body ol{padding-left:16px;margin-bottom:9px}
+.res-body li{margin-bottom:4px;font-size:13px}
+.res-body strong{font-weight:500}
+.res-body em{font-style:italic;color:var(--mu)}
+.res-body blockquote{border-left:2px solid var(--di);padding:6px 11px;margin:8px 0;font-style:italic;color:var(--mu);font-size:12px;background:var(--sur);border-radius:0 5px 5px 0}
+.res-footer{margin-top:18px;display:flex;gap:7px}
+.btn-sm{padding:7px 14px;border-radius:5px;border:0.5px solid var(--bdr);background:var(--sur);color:var(--mu);font-family:var(--f);font-size:11px;cursor:pointer}
+.btn-sm:hover{border-color:var(--bhi);color:var(--tx)}
+
+.center-panel{display:none;flex-direction:column;justify-content:center;padding:28px 20px;min-height:200px}
+.center-warn{font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:#c44;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.center-h{font-family:var(--serif);font-size:20px;font-weight:400;line-height:1.15;margin-bottom:10px}
+.center-p{font-size:12.5px;color:var(--mu);line-height:1.65}
+
+.seg-lbl{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;line-height:1.3}
+.seg-lbl-name{font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;display:block}
+.seg-lbl-pct{font-size:10px;font-family:'DM Sans',sans-serif;opacity:.65;display:block}
+
+/* ── ANALYZER TAB ───────────────────────────────── */
+#tabAnalyzer{flex-direction:row}
+.az-app{flex:1;display:grid;grid-template-columns:460px 1fr;overflow:hidden}
+
+/* Left config panel */
+.az-l{border-right:0.5px solid var(--bdr);background:var(--sur);display:flex;flex-direction:column;overflow:hidden}
+.az-l-scroll{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:0}
+.az-l-scroll::-webkit-scrollbar{width:3px}
+.az-l-scroll::-webkit-scrollbar-thumb{background:var(--di);border-radius:2px}
+.az-l-foot{padding:12px 20px;border-top:0.5px solid var(--bdr);flex-shrink:0}
+
+.az-step-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:18px}
+.az-step-hdr:first-child{margin-top:0}
+.az-step-n{font-family:var(--mono);font-size:9px;color:var(--mu);background:var(--sur2);padding:2px 6px;border-radius:3px;border:0.5px solid var(--bdr);letter-spacing:.05em}
+.az-step-t{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+
+/* Mini target wheel */
+.az-wheel-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
+#azTargetSvg{display:block}
+.az-seg-name{font-family:var(--serif);font-size:15px;font-weight:400;text-align:center;color:var(--mu);min-height:22px;margin-top:8px;transition:color .2s}
+.az-seg-sub{font-family:var(--mono);font-size:9px;color:var(--di);text-align:center;min-height:14px;letter-spacing:.04em;margin-bottom:12px}
+
+/* IQ ring selector */
+.az-iq-strip{display:flex;gap:4px;margin-bottom:16px}
+.az-iq-btn{flex:1;padding:7px 4px;border-radius:6px;border:0.5px solid var(--bdr);background:transparent;font-family:var(--f);font-size:10.5px;color:var(--mu);cursor:pointer;text-align:center;transition:all .15s;line-height:1.35}
+.az-iq-btn:hover{border-color:var(--bhi);color:var(--tx)}
+.az-iq-btn.active{border-color:currentColor;font-weight:500}
+.az-iq-sub{font-size:8.5px;color:var(--di);display:block;margin-top:1px}
+
+.az-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);display:block;margin-bottom:5px}
+.az-hdivider{height:0.5px;background:var(--bdr);margin:16px 0}
+
+/* Content tabs */
+.az-tabs{display:flex;gap:3px;padding:3px;background:var(--bg);border-radius:7px;border:0.5px solid var(--bdr);margin-bottom:12px}
+.az-tab{flex:1;padding:6px 8px;border-radius:5px;border:none;background:transparent;font-family:var(--f);font-size:11.5px;font-weight:500;color:var(--mu);cursor:pointer;transition:all .15s}
+.az-tab.active{background:var(--sur);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* Dropzone */
+.az-dropzone{border:1px dashed var(--bdr);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg)}
+.az-dropzone:hover,.az-dropzone.drag-over{border-color:var(--bhi);background:var(--sur)}
+.az-dz-icon{font-size:20px;margin-bottom:7px;opacity:.5}
+.az-dz-txt{font-size:12px;color:var(--mu)}
+.az-dz-sub{font-size:10px;color:var(--di);margin-top:3px;font-family:var(--mono)}
+.az-img-preview{width:100%;border-radius:7px;display:block;border:0.5px solid var(--bdr);max-height:160px;object-fit:cover}
+.az-img-rm{width:100%;margin-top:7px;padding:6px;border-radius:6px;border:0.5px solid var(--bdr);background:transparent;font-family:var(--f);font-size:11px;color:var(--mu);cursor:pointer;transition:all .15s}
+.az-img-rm:hover{border-color:#c44;color:#c44}
+
+/* Analyze button */
+.az-run-btn{width:100%;padding:12px;border-radius:8px;border:none;font-family:var(--f);font-size:13px;font-weight:500;background:var(--tx);color:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.az-run-btn:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+.az-run-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+/* Right results panel */
+.az-r{overflow-y:auto;padding:28px 32px;background:var(--bg);display:flex;flex-direction:column;align-items:center;gap:16px}
+.az-r::-webkit-scrollbar{width:3px}
+.az-r::-webkit-scrollbar-thumb{background:var(--di);border-radius:2px}
+
+/* Empty / loading state */
+.az-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:var(--mu);width:100%}
+.az-empty-icon{width:52px;height:52px;border-radius:50%;border:0.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.4}
+.az-empty-h{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--tx)}
+.az-empty-p{font-size:12.5px;color:var(--mu);max-width:220px;line-height:1.7}
+
+.az-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%}
+.az-spin-wrap{position:relative;width:64px;height:64px}
+.az-spin-svg{animation:sp .9s linear infinite;transform-origin:center}
+.az-loading-txt{font-family:var(--mono);font-size:10px;color:var(--mu);letter-spacing:.08em;animation:az-pulse 1.5s ease-in-out infinite}
+@keyframes az-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Result layout */
+.az-results{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
+
+/* Result wheel */
+.az-rwheel-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.az-rwheel-legend{display:flex;gap:18px}
+.az-leg-item{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--mu)}
+.az-leg-target{width:9px;height:9px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);flex-shrink:0}
+.az-leg-content{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Score card */
+.az-score-card{background:var(--sur);border:0.5px solid var(--bdr);border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:16px}
+.az-score-num{font-family:var(--serif);font-size:42px;font-weight:400;line-height:1;flex-shrink:0;transition:color .4s}
+.az-score-lbl{font-size:11.5px;font-weight:500;margin-bottom:3px}
+.az-score-desc{font-size:11px;color:var(--mu);line-height:1.5}
+
+/* Verdict card */
+.az-verdict{background:var(--sur);border:0.5px solid var(--bdr);border-radius:10px;padding:16px 18px}
+.az-verdict-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--bdr)}
+.az-seg-row{display:flex;align-items:center;gap:9px}
+.az-seg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.az-seg-name{font-family:var(--serif);font-size:20px;font-weight:400;line-height:1.1}
+.az-seg-en{font-size:10.5px;color:var(--mu);margin-top:2px}
+.az-conf-block{text-align:right;flex-shrink:0}
+.az-conf-val{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1}
+.az-conf-lbl{font-family:var(--mono);font-size:8px;color:var(--di);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+.az-iq-row{display:flex;align-items:center;gap:9px}
+.az-iq-lbl{font-family:var(--mono);font-size:9px;color:var(--mu);width:14px}
+.az-iq-track{flex:1;height:4px;background:var(--sur2);border-radius:2px;overflow:hidden}
+.az-iq-bar{height:100%;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.az-iq-val{font-family:var(--mono);font-size:10px;width:22px;text-align:right;color:var(--tx)}
+
+/* Analysis cards */
+.az-card{background:var(--sur);border:0.5px solid var(--bdr);border-radius:10px;padding:16px 18px}
+.az-card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);margin-bottom:11px;display:block}
+.az-signals{display:flex;flex-direction:column;gap:7px}
+.az-signal{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;line-height:1.55;color:var(--tx)}
+.az-sig-dot{width:3px;height:3px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.az-gap-txt{font-size:12.5px;line-height:1.75;color:var(--mu)}
+.az-recs{display:flex;flex-direction:column;gap:9px}
+.az-rec{display:flex;gap:9px;align-items:flex-start}
+.az-rec-n{font-family:var(--mono);font-size:9px;color:var(--sur);min-width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:var(--tx)}
+.az-rec-t{font-size:12.5px;line-height:1.6;color:var(--tx)}
+
+.az-reset-btn{width:100%;padding:9px;border-radius:7px;border:0.5px solid var(--bdr);background:transparent;font-family:var(--f);font-size:11.5px;color:var(--mu);cursor:pointer;transition:all .15s}
+.az-reset-btn:hover{border-color:var(--bhi);color:var(--tx)}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media(max-width:720px){
+  html,body{overflow:auto;height:auto}
+  .tab-panel.active{height:auto;overflow:visible}
+  .map-app,.az-app{grid-template-columns:1fr;overflow:auto;height:auto}
+  .map-col{border-right:none;border-bottom:0.5px solid var(--bdr);padding:20px 0 12px;height:auto;min-height:0}
+  .map-svg-wrap{width:min(92vw,420px);height:min(92vw,420px)}
+  .info-col{max-height:none;overflow:visible}
+  .info-inner{padding:20px 18px 40px}
+  .zp-head{position:relative}
+  .az-l,.az-r{max-height:none;overflow:visible}
+}
+@media print{
+  .map-col,.gear-wrap,.lang-sw,.gen-btn,.res-back,.res-footer,.pin-section,.form-section,.tab-nav,#tabAnalyzer{display:none!important}
+  .map-app{grid-template-columns:1fr}
+  .info-col{max-height:none;overflow:visible}
+}
+
+/* fade in animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.az-fade-up{animation:fadeUp .35s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wm">NeedScope&#174;</div>
+
+  <div class="tab-nav">
+    <button class="tab-nav-btn active" id="navMap" onclick="switchTab('map')">
+      <span class="tab-icon">◎</span> Positioning Map
+    </button>
+    <button class="tab-nav-btn" id="navAz" onclick="switchTab('az')">
+      <span class="tab-icon">◈</span> Analyzer
+    </button>
+  </div>
+
+  <div class="hdr-r">
+    <div class="lang-sw">
+      <button class="lb on" id="btnCZ" onclick="setLang('cs')">CZ</button>
+      <button class="lb" id="btnEN" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="gear-wrap">
+      <button class="gear-btn" onclick="toggleGear(event)" title="API key">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--mu)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="gear-panel" id="gearPanel">
+        <span class="glbl" id="gearLbl">Anthropic API klíč</span>
+        <p class="gnote" id="gearNote"><strong>Potřebujete API klíč</strong> z <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — zdarma. Klíč zůstává jen v prohlížeči.</p>
+        <div class="gkrow">
+          <input type="password" id="apiKey" placeholder="sk-ant-api03-...">
+          <button class="gshow" id="showKeyBtn" onclick="toggleKey(event)">Zobrazit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ TAB 1: MAP ═══════════════════════════════════ -->
+<div class="tab-panel active" id="tabMap">
+  <div class="map-app">
+    <div class="map-col">
+      <div class="map-svg-wrap" id="mapWrap" style="touch-action:none">
+        <svg viewBox="0 0 600 600" id="mapSvg"></svg>
+        <div id="labelsOverlay" style="position:absolute;inset:0;pointer-events:none"></div>
+      </div>
+      <div class="map-hint"><span id="mapHintTxt">Pohybujte kurzorem po kole · klikněte pro ukotvení pozice</span></div>
+    </div>
+    <div class="info-col" id="infoCol">
+      <div class="info-inner" id="infoInner">
+        <div class="idle-panel" id="idlePanel">
+          <div class="idle-eye" id="idleEye">Pohybujte kurzorem po kole</div>
+          <h1 class="idle-h" id="idleH">Prozkoumejte<br><em>positioning</em> prostor</h1>
+          <p class="idle-p" id="idleP">Každý bod v kole je strategická pozice. Úhel = kombinace needstates. Poloměr = síla vlastnictví segmentu (IQ). Průsečíky segmentů jsou skryté příležitosti.</p>
+          <div class="dots" id="idleDots"></div>
+          <div class="axes-note" id="axesNote">
+            <div class="axes-row"><span id="axTop">↑ JÁ — individualismus, dominance</span></div>
+            <div class="axes-row"><span id="axL">← introvert</span><span id="axR">extrovert →</span></div>
+            <div class="axes-row"><span id="axBot">↓ MY — sociální vazby, komunita</span></div>
+          </div>
+        </div>
+        <div class="zone-panel" id="zonePanel">
+          <div class="zp-head">
+            <div class="zp-tag" id="zpTag"><div class="zp-tag-dot" id="zpTagDot"></div><span id="zpTagTxt"></span></div>
+            <div class="zp-name" id="zpName"></div>
+            <div class="zp-sub" id="zpSub"></div>
+          </div>
+          <div class="zp-body" id="zpBody"></div>
+          <div class="pin-section" id="pinSection">
+            <button class="pin-cta" id="pinBtn" onclick="pinPosition()"></button>
+            <button class="to-analyzer-btn" id="toAnalyzerBtn" style="display:none" onclick="goToAnalyzerWithPin()">◈ Otestovat komunikaci v Analyzéru →</button>
+          </div>
+          <div class="form-section" id="formSection" style="display:none">
+            <label class="inp-lbl" id="labBrand">Název vaší značky</label>
+            <input type="text" id="bName" placeholder="Kofola, Bolt, BrandX...">
+            <label class="inp-lbl" id="labDesc">Co děláte a pro koho</label>
+            <textarea id="bDesc" placeholder="Popis produktu, zákazníci, problém..."></textarea>
+            <button class="gen-btn" id="genBtn" onclick="generate()"><span id="genTxt">Generovat positioning framework</span> →</button>
+            <button class="pin-cta outline" onclick="unpin()" id="unpinBtn">← Zrušit ukotvení</button>
+          </div>
+          <div class="result-section" id="resultSection" style="display:none">
+            <div class="loading" id="loadWrap"><div class="spin"></div><span id="loadMsg"></span></div>
+            <div class="res-body" id="resBody"></div>
+            <div class="res-footer" style="display:none" id="resFooter">
+              <button class="btn-sm" onclick="window.print()" id="printBtn">Tisk / PDF</button>
+              <button class="btn-sm" onclick="unpin()" id="resetBtn">Začít znovu</button>
+            </div>
+          </div>
+        </div>
+        <div class="center-panel" id="centerPanel">
+          <div class="center-warn"><span>&#9888;</span><span id="cwarnTxt">Nezmapovaná pozice</span></div>
+          <div class="center-h" id="centerH">Rozmazaný<br>positioning</div>
+          <p class="center-p" id="centerP">Značka v centru kola promlouvá ke všem segmentům, ale žádný skutečně nevlastní. Zákazníci ji vnímají jako generickou — těžko zapamatovatelnou a snadno nahraditelnou.</p>
+          <p class="center-p" style="margin-top:10px" id="centerTip">Posuňte kurzor směrem k okraji kola a objevte silnější pozice.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: ANALYZER ════════════════════════════════ -->
+<div class="tab-panel" id="tabAnalyzer">
+  <div class="az-app">
+
+    <!-- Left config panel -->
+    <div class="az-l">
+      <div class="az-l-scroll">
+
+        <!-- Step 01: Target -->
+        <div class="az-step-hdr" style="margin-top:0">
+          <span class="az-step-n">01</span>
+          <span class="az-step-t">Cílový positioning</span>
+        </div>
+
+        <div class="az-wheel-wrap">
+          <div style="position:relative;width:380px;height:380px;cursor:crosshair;user-select:none;touch-action:none" id="azWheelWrap">
+            <svg id="azTargetSvg" width="100%" height="100%" viewBox="0 0 600 600" style="display:block"></svg>
+            <div id="azLabelsOverlay" style="position:absolute;inset:0;pointer-events:none"></div>
+          </div>
+          <div style="text-align:center;margin-top:8px">
+            <div style="font-family:var(--serif);font-size:15px;font-weight:400;color:var(--mu);min-height:22px;transition:color .2s" id="azSegName">Pohybujte kurzorem · klikněte pro výběr</div>
+            <div style="font-size:9px;color:var(--di);min-height:14px;letter-spacing:.04em;margin-top:2px" id="azSegSub" id="azWheelHint"></div>
+          </div>
+        </div>
+
+        <div class="az-iq-strip" id="azIqStrip">
+          <button class="az-iq-btn" data-iq="17" onclick="azSetIq(17)">Generické<span class="az-iq-sub">IQ 0–33</span></button>
+          <button class="az-iq-btn active" data-iq="50" onclick="azSetIq(50)">Jasné<span class="az-iq-sub">IQ 34–66</span></button>
+          <button class="az-iq-btn" data-iq="83" onclick="azSetIq(83)">Silné<span class="az-iq-sub">IQ 67–100</span></button>
+        </div>
+
+        <div>
+          <span class="az-lbl">Kontext značky <span style="color:var(--di)">(nepovinné)</span></span>
+          <input type="text" id="azBrandCtx" placeholder="Krátký popis značky nebo produktu..." style="margin-bottom:0">
+        </div>
+
+        <div class="az-hdivider"></div>
+
+        <!-- Step 02: Content -->
+        <div class="az-step-hdr">
+          <span class="az-step-n">02</span>
+          <span class="az-step-t">Obsah k analýze</span>
+        </div>
+
+        <div class="az-tabs">
+          <button class="az-tab active" id="azTabTxt" onclick="azSwitchTab('text')">✍ Text</button>
+          <button class="az-tab" id="azTabImg" onclick="azSwitchTab('image')">🖼 Obrázek</button>
+        </div>
+
+        <div id="azPanelTxt">
+          <textarea id="azContentTxt" rows="7" placeholder="Vlož text ke analýze — headline, body copy, post, script, claim, tagline..." oninput="azUpdateBtn()"></textarea>
+        </div>
+
+        <div id="azPanelImg" style="display:none">
+          <div class="az-dropzone" id="azDropzone">
+            <div class="az-dz-icon">📎</div>
+            <div class="az-dz-txt">Přetáhni obrázek nebo klikni</div>
+            <div class="az-dz-sub">JPG, PNG, WEBP · max 5 MB</div>
+          </div>
+          <div id="azImgPreviewWrap" style="display:none">
+            <img class="az-img-preview" id="azImgPreview" alt="">
+            <button class="az-img-rm" onclick="azRemoveImg()">✕ Odebrat obrázek</button>
+          </div>
+          <input type="file" id="azFileInput" accept="image/*" style="display:none">
+        </div>
+
+      </div>
+
+      <div class="az-l-foot">
+        <button class="az-run-btn" id="azRunBtn" onclick="azAnalyze()" disabled>Analyzovat →</button>
+      </div>
+    </div>
+
+    <!-- Right results panel -->
+    <div class="az-r" id="azRight">
+
+      <div class="az-empty" id="azEmpty">
+        <div class="az-empty-icon">◎</div>
+        <div class="az-empty-h">Připraven k analýze</div>
+        <p class="az-empty-p">Nastav cílový positioning kliknutím na segment, vlož obsah a klikni Analyzovat.</p>
+      </div>
+
+      <div class="az-loading" id="azLoading" style="display:none">
+        <svg class="az-spin-svg" width="60" height="60" viewBox="0 0 60 60" id="azLoadSvg"></svg>
+        <div class="az-loading-txt" id="azLoadTxt">Analyzuji obsah...</div>
+      </div>
+
+      <div class="az-results az-fade-up" id="azResults" style="display:none">
+
+        <div class="az-rwheel-wrap">
+          <svg id="azResultSvg" width="280" height="280" viewBox="0 0 280 280"></svg>
+          <div class="az-rwheel-legend">
+            <div class="az-leg-item">
+              <div class="az-leg-target" id="azLegTarget" style="background:var(--tx)"></div>
+              <span>Cílový positioning</span>
+            </div>
+            <div class="az-leg-item">
+              <div class="az-leg-content" id="azLegContent" style="background:var(--mu)"></div>
+              <span>Analyzovaný obsah</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="az-score-card">
+          <div class="az-score-num" id="azScoreNum">—</div>
+          <div>
+            <div class="az-score-lbl" id="azScoreLbl">Konzistenční skóre</div>
+            <div class="az-score-desc" id="azScoreDesc">—</div>
+          </div>
+        </div>
+
+        <div class="az-verdict">
+          <div class="az-verdict-top">
+            <div>
+              <div class="az-seg-row">
+                <div class="az-seg-dot" id="azResDot"></div>
+                <div class="az-seg-name" id="azResName" style="min-height:0;margin-top:0;text-align:left">—</div>
+              </div>
+              <div class="az-seg-en" id="azResEn">—</div>
+            </div>
+            <div class="az-conf-block">
+              <div class="az-conf-val" id="azConfVal">—</div>
+              <div class="az-conf-lbl">Confidence</div>
+            </div>
+          </div>
+          <div class="az-iq-row">
+            <div class="az-iq-lbl">IQ</div>
+            <div class="az-iq-track"><div class="az-iq-bar" id="azIqBar" style="width:0%"></div></div>
+            <div class="az-iq-val" id="azIqVal">—</div>
+          </div>
+        </div>
+
+        <div class="az-card">
+          <span class="az-card-lbl">Klíčové signály</span>
+          <div class="az-signals" id="azSignals"></div>
+        </div>
+
+        <div class="az-card">
+          <span class="az-card-lbl">Gap analýza</span>
+          <div class="az-gap-txt" id="azGapTxt">—</div>
+        </div>
+
+        <div class="az-card">
+          <span class="az-card-lbl">Doporučení</span>
+          <div class="az-recs" id="azRecs"></div>
+        </div>
+
+        <button class="az-reset-btn" onclick="azReset()">← Analyzovat nový obsah</button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ SCRIPT ════════════════════════════════════════ -->
+<script>
+/* ────────────────────────────────────────────────────
+   SHARED DATA
+──────────────────────────────────────────────────── */
+var L='cs';
+
+var SEG=[
+  {id:'RE',angle:0,color:'#9a7e00',bg:'rgba(154,126,0,.1)',
+   cz:'Relaxační vzrušení',en:'Relaxing Excitement',pct:20,
+   arch:{cs:'Bavič — hravý, spontánní, trendy',en:'Entertainer — playful, spontaneous, trendy'},
+   desc:{cs:'Bezstarostní zákazníci hledající jednoduchost a hravost bez námahy. Na mobilu, konzumující short video, impulzivní. Značka musí zasáhnout v daném okamžiku.',en:'Carefree customers seeking simplicity and playfulness without effort. On mobile, consuming short video, impulsive. The brand must strike at the right moment.'},
+   must:{cs:['Čerstvá','Hravá','Úderná'],en:['Fresh','Playful','Punchy']},
+   tone:{cs:'Energický · Odlehčený · Překvapivý',en:'Energetic · Light · Surprising'},
+   say:{cs:['Udělej si radost — stačí jeden klik','Nové každý týden — protože nuda je hřích','Prostě si to užij'],en:['Treat yourself — one click away','Something new every week — boredom is a crime','Just enjoy it']},
+   notsay:{cs:['Komplexní řešení pro náročné','Doporučeno odborníky','Spolehlivá investice'],en:['A complex solution for demanding users','Recommended by experts','A reliable long-term investment']},
+   brands:['Kofola','Wolt','Bolt Food','Spotify','McDonald\'s','Red Bull','Footshop'],
+   iqlevel:{cs:['Vstupujete do prostoru lehkosti a zábavy. Pozice se teprve formuje.','Vaše značka je zákazníky tohoto segmentu vnímána jako relevantní volba.','Vaše značka silně vlastní tento prostor — první volba pro spontánní radost.'],en:['You\'re entering the fun and lightness space. The position is still forming.','Your brand is seen as a relevant choice by this segment.','Your brand strongly owns this space — first choice for spontaneous joy.']},
+   platforms:[{n:'TikTok',pct:72},{n:'Instagram Reels',pct:68},{n:'YouTube Shorts',pct:65}],
+   stats:[{v:'82 %',d:{cs:'sleduje krátká videa',en:'watches short videos'}},{v:'14 %',d:{cs:'koupilo po influencer doporučení',en:'bought after influencer rec.'}},{v:'2/3',d:{cs:'obsah jen na mobilu',en:'content only on mobile'}}],
+   ltags:{cs:['impulzivní nákupy','food & lifestyle','gaming','entertainment'],en:['impulse buying','food & lifestyle','gaming','entertainment']}},
+  {id:'IE',angle:60,color:'#a02028',bg:'rgba(160,32,40,.1)',
+   cz:'Intenzivní zážitek',en:'Intense Experience',pct:12,
+   arch:{cs:'Průzkumník — rebel, nezávislý, odvážný',en:'Explorer — rebel, independent, bold'},
+   desc:{cs:'Žijí přítomností, odmítají kompromisy, hledají svobodu a hranice. Totální flexibilita — kdykoli, odkudkoli. Reagují na autenticitu, ne na leštěný obsah.',en:'Live in the present, refuse compromises, seek freedom and limits. Total flexibility — anytime, anywhere. They respond to authenticity, not polished content.'},
+   must:{cs:['Odvážná','Dynamická','Průkopnická'],en:['Bold','Dynamic','Pioneering']},
+   tone:{cs:'Provokativní · Přímý · Bez omluv',en:'Provocative · Direct · Unapologetic'},
+   say:{cs:['Pravidla jsou od toho, aby se přepisovala','První, kdo vyzkouší — první, kdo vyhraje','Žádné kompromisy. Žádné čekání.'],en:['Rules exist to be rewritten','First to try — first to win','No compromises. No waiting.']},
+   notsay:{cs:['Osvědčené a bezpečné','Garantovaná spokojenost','Pro celou rodinu'],en:['Tried, tested and safe','Guaranteed satisfaction','For the whole family']},
+   brands:['Red Bull','GoPro','Under Armour','Discord','Monster Energy','Patagonia','Rockstar'],
+   iqlevel:{cs:['Zatím jen narazíte na okraj tohoto segmentu — zákazníci si vás s ním teprve začínají spojovat.','Vaše značka buduje reputaci v intenzivním prostoru — roste loajalita.','Cult following — zákazníci z tohoto segmentu jsou fanaticky věrní.'],en:['You\'re just touching the edge — customers are only starting to associate you here.','Your brand is building reputation in the intense space — loyalty is growing.','Cult following — customers from this segment are fanatically loyal.']},
+   platforms:[{n:'YouTube',pct:78},{n:'Twitch / Discord',pct:44},{n:'Reddit / niche',pct:38}],
+   stats:[{v:'1/3',d:{cs:'používá AI pravidelně',en:'uses AI tools regularly'}},{v:'15 %',d:{cs:'trendsetteři — tech milují',en:'trendsetters — love tech'}},{v:'90 %',d:{cs:'Gen Z mobile-first',en:'Gen Z mobile-first'}}],
+   ltags:{cs:['gaming & esports','dobrodružství','early adopter','cestování'],en:['gaming & esports','adventure','early adopter','travel']}},
+  {id:'UE',angle:120,color:'#622088',bg:'rgba(98,32,136,.1)',
+   cz:'Jedinečná exkluzivita',en:'Unique Exclusivity',pct:14,
+   arch:{cs:'Lídr — sebejistý, ambiciózní, nároční',en:'Leader — self-assured, ambitious, demanding'},
+   desc:{cs:'Sebejistí lídři, kteří vědí, že čas je vzácný. Prémiové produkty jsou odrazem jejich postavení. Platí za nejlepší bez otázek. Nejnižší tolerance k chybě.',en:'Self-assured leaders who know time is precious. Premium products reflect their status. Pay for the best without asking why. Lowest tolerance for mistakes.'},
+   must:{cs:['Exkluzivní','Sofistikovaná','Prémiová'],en:['Exclusive','Sophisticated','Premium']},
+   tone:{cs:'Sofistikovaný · Selektivní · Bez vysvětlování',en:'Sophisticated · Selective · No justification needed'},
+   say:{cs:['Pro ty, kteří vědí rozdíl','Omezená dostupnost — z důvodu','Uznání od těch, kteří rozumí'],en:['For those who know the difference','Limited availability — for a reason','Recognition from those who understand']},
+   notsay:{cs:['Dostupné pro každého','Výhodná cena','Jednoduše a rychle'],en:['Available to everyone','Great value for money','Simple and quick']},
+   brands:['Apple','Tesla','Bang & Olufsen','Porsche','Nespresso','Amex Platinum','The Economist'],
+   iqlevel:{cs:['Slabá prémiová pozice — zákazníci vás zatím nevnímají jako definující hráče v exkluzivitě.','Etablovaná prémiová pozice — volba pro ty, kteří vědí.','Irrezistibilní — pro tento segment jste první a jedinou volbou.'],en:['Weak premium position — customers don\'t yet see you as a defining player in exclusivity.','Established premium position — the choice for those who know.','Irresistible — for this segment, you\'re the first and only choice.']},
+   platforms:[{n:'LinkedIn',pct:62},{n:'Podcasty',pct:55},{n:'Quality media',pct:48}],
+   stats:[{v:'50 %',d:{cs:'platí mobilem — QR, Apple Pay',en:'pay by mobile — QR, Apple Pay'}},{v:'½',d:{cs:'raději počká na ověřené novinky',en:'prefer to wait for proven novelties'}},{v:'63 %',d:{cs:'marketérů nadšeno z AI v rekl.',en:'marketers excited about AI in ads'}}],
+   ltags:{cs:['business travel','prémiové zážitky','newslettery','time-poor'],en:['business travel','premium experiences','newsletters','time-poor']}},
+  {id:'CU',angle:180,color:'#104888',bg:'rgba(16,72,136,.1)',
+   cz:'Úplné pochopení',en:'Complete Understanding',pct:15,
+   arch:{cs:'Analytik — racionální, principiální, v kontrole',en:'Analyst — rational, principled, in control'},
+   desc:{cs:'Rozhodují se na základě dat a faktů. Potřebují odbornost, transparentnost a solidní zázemí. Vzdělání je pro ně klíčové — chtějí rozumět proč.',en:'Decide based on data and facts. Need expertise, transparency and solid background. Education is key for them — they want to understand why.'},
+   must:{cs:['Čitelná','Odborná','Transparentní'],en:['Clear','Expert','Transparent']},
+   tone:{cs:'Autoritativní · Faktický · Detailní',en:'Authoritative · Factual · Detailed'},
+   say:{cs:['Data ukazují jasně: 87 % uživatelů...','Jak to funguje — krok za krokem','Žádná drobná písmenka. Žádná překvapení.'],en:['Data clearly show: 87% of users...','Here\'s how it works — step by step','No small print. No surprises.']},
+   notsay:{cs:['Prostě to zkuste','Věřte nám','Netřeba vědět jak'],en:['Just try it','Trust us','No need to know how it works']},
+   brands:['Alza.cz','Česká spořitelna','Kiwi.com','Škoda Auto','IBM','HubSpot','Bloomberg'],
+   iqlevel:{cs:['Zákazníci vás vnímají jako kompetentní, ale ne jako autoritu. Budujte edukační obsah.','Vaše odbornost je v segmentu uznávána. Pokračujte v hloubce.','Jste autoritou — zákazníci se na vás spoléhají jako na primární zdroj.'],en:['Customers see you as competent, but not an authority. Build educational content.','Your expertise is recognised in the segment. Maintain depth.','You\'re the authority — customers rely on you as their primary source.']},
+   platforms:[{n:'Zpravodajské weby',pct:74},{n:'YouTube EDU',pct:61},{n:'Podcasty',pct:52}],
+   stats:[{v:'92 %',d:{cs:'snaží se být obezřetní online',en:'try to be cautious online'}},{v:'64 %',d:{cs:'zažilo nepříjemné online zkuš.',en:'had unpleasant online exp.'}},{v:'43 %',d:{cs:'chce méně technologií',en:'want fewer technologies'}}],
+   ltags:{cs:['DIY & kutilství','vzdělávání','srovnávání','recenze'],en:['DIY & crafts','education','comparisons','reviews']}},
+  {id:'CC',angle:240,color:'#5e3820',bg:'rgba(94,56,32,.1)',
+   cz:'Uklidňující jistota',en:'Calming Certainty',pct:18,
+   arch:{cs:'Ochránce — tradiční, pečující, opatrný',en:'Protector — traditional, caring, cautious'},
+   desc:{cs:'Hledají stabilitu v chaotickém světě. Důvěřují zavedeným značkám, vyhýbají se zbytečným rizikům. Kontinuita a předvídatelnost jsou vše.',en:'Seek stability in a chaotic world. Trust established brands, avoid unnecessary risks. Continuity and predictability are everything.'},
+   must:{cs:['Spolehlivá','Tradiční','Důvěryhodná'],en:['Reliable','Traditional','Trustworthy']},
+   tone:{cs:'Vřelý · Klidný · Ujišťující',en:'Warm · Calm · Reassuring'},
+   say:{cs:['S námi víte, na čem jste','Tady od roku 1995 — a nikam nejdeme','Stačí zavolat — jsme tady'],en:['With us you know where you stand','Here since 1995 — and not going anywhere','Just call — we\'re here']},
+   notsay:{cs:['Revoluční novinka','Disruptivní přístup','Zapomeňte na staré způsoby'],en:['Revolutionary new product','Disruptive approach','Forget the old ways']},
+   brands:['Česká pojišťovna','Mattoni','Kaufland','Kooperativa','O2','Gambrinus','Lidl'],
+   iqlevel:{cs:['Zákazníci vás vnímají jako nové — zatím nemají důvod vám plně důvěřovat. Čas a konzistence jsou vaší investicí.','Vaše značka je etablovaná a důvěryhodná. Zákazníci se k vám vracejí.','Hluboce zakotvená pozice — zákazníci by vás jen těžko opustili.'],en:['Customers see you as new — no reason to fully trust you yet. Time and consistency are your investment.','Your brand is established and trustworthy. Customers return.','Deeply rooted position — customers would be hard pressed to leave you.']},
+   platforms:[{n:'Facebook',pct:81},{n:'Televize',pct:76},{n:'Regionální weby',pct:44}],
+   stats:[{v:'43 %',d:{cs:'chce méně technologií',en:'want fewer technologies'}},{v:'2/3',d:{cs:'cítí se závislí, rádi offline',en:'feel dependent, enjoy offline'}},{v:'82 %',d:{cs:'nakupuje online — ověřené značky',en:'buys online — verified brands'}}],
+   ltags:{cs:['rodinné aktivity','zahrada & domov','tradiční média','vaření'],en:['family activities','garden & home','traditional media','cooking']}},
+  {id:'FT',angle:300,color:'#924800',bg:'rgba(146,72,0,.1)',
+   cz:'Zábava společně',en:'Fun Together',pct:21,
+   arch:{cs:'Spojovatel — přátelský, rodinný, komunitní',en:'Connector — friendly, family-driven, community'},
+   desc:{cs:'Sdílejí zážitky s rodinou a přáteli. Komunita a sdílení jsou klíčové. Hledají značky fungující pro celou domácnost. Největší segment — největší nároky na inkluzivitu.',en:'Share experiences with family and friends. Community and sharing are key. Seek brands that work for the whole household. Largest segment — highest demands for inclusivity.'},
+   must:{cs:['Přátelská','Inkluzivní','Komunitní'],en:['Friendly','Inclusive','Community-driven']},
+   tone:{cs:'Vřelý · Otevřený · Konverzační',en:'Warm · Open · Conversational'},
+   say:{cs:['Stvořeno pro sdílení','Celá rodina na jednom místě','Tvoji přátelé to také milují'],en:['Made for sharing','The whole family in one place','Your friends love it too']},
+   notsay:{cs:['Pouze pro individuální použití','Exkluzivní přístup','Prémiový výběr pro znalce'],en:['For individual use only','Exclusive access','Premium choice for connoisseurs']},
+   brands:['IKEA','McDonald\'s','Disney+','Dedoles','Tchibo','Albi','Rohlík.cz'],
+   iqlevel:{cs:['Zákazníci vás znají, ale zatím vás nevnímají jako značku pro celou rodinu. Rozšiřte nabídku a komunikaci.','Vaše značka je vnímána jako přátelská volba pro sdílení.','Dominujete segmentu sdílené zábavy — první volba pro rodinné příležitosti.'],en:['Customers know you, but don\'t yet see you as a whole-family brand. Expand offering and communication.','Your brand is seen as a friendly choice for sharing.','You dominate the shared fun segment — first choice for family occasions.']},
+   platforms:[{n:'Facebook',pct:84},{n:'WhatsApp / Messenger',pct:79},{n:'YouTube',pct:71}],
+   stats:[{v:'2/3',d:{cs:'chce znát značky lépe přes soc. sítě',en:'want to know brands better via social'}},{v:'82 %',d:{cs:'nakupuje online — po stagnaci roste',en:'buys online — growing again'}},{v:'14 %',d:{cs:'koupilo po influencer propagaci',en:'bought after influencer promotion'}}],
+   ltags:{cs:['family time','sdílení obsahu','skupinové rozhodování','tradice'],en:['family time','content sharing','group decisions','traditions']}}
+];
+
+var BOUNDARY={
+  'IE-RE':{name:{cs:'Energické dobrodružství',en:'Energetic Adventure'},sub:{cs:'Průsečík spontánnosti a intenzity',en:'Intersection of spontaneity and intensity'},opp:{cs:'Vzácná mezera: většina hravých značek je příliš hebká, většina intenzivních příliš těžká. Zákazník tady chce zábavu na hraně — bez zbytečné vážnosti, ale s reálným adrenalinenem. Ideální pro lifestyle produkty přinášející lehkou intenzitu.',en:'A rare gap: most playful brands are too soft, most intense ones too heavy. The customer here wants fun on the edge — without unnecessary seriousness, but with real adrenaline. Ideal for lifestyle products delivering light intensity.'},brands:['Red Bull (light line)','GoPro','Nike Running','Monster Juiced','Ryanair (campaigns)'],insight:{cs:'Značky zde vyhrávají, když komuniují intenzitu s lehkostí — vážná ambice, ale s úsměvem.',en:'Brands here win by communicating intensity with lightness — serious ambition, but with a smile.'}},
+  'IE-UE':{name:{cs:'Prémiový rebel',en:'Premium Rebel'},sub:{cs:'Luxus, který hraje podle vlastních pravidel',en:'Luxury that plays by its own rules'},opp:{cs:'Sebejistý člověk, který nechce konformní prémiový svět. Chce výjimečnost s postojem — ne starý svět statusu, ale nový cool. Většina luxusních značek je konvenční. Tato zóna je pro ty, co si dovolí být jiné.',en:'The self-assured person who doesn\'t want conventional premium. They want excellence with attitude — not old-world status, but new-era cool. Most luxury brands are conformist. This zone is for those bold enough to be different.'},brands:['Supreme','Off-White','Rimowa','Balenciaga','Harley-Davidson premium'],insight:{cs:'Klíč: exkluzivita musí být viditelná, ale pravidla musí být porušena. Jinak je to jen drahé.',en:'Key: exclusivity must be visible, but rules must be broken. Otherwise it\'s just expensive.'}},
+  'CU-UE':{name:{cs:'Informovaná dokonalost',en:'Informed Excellence'},sub:{cs:'Prémiové, podložené argumenty a daty',en:'Premium, backed by arguments and data'},opp:{cs:'Lídr, který chce nejlepší A chce rozumět proč. Většina prémiových značek odmítá vysvětlovat svou kvalitu — berou ji za samozřejmou. Tato zóna dělá z edukace výhodu. Pro odborné produkty a B2B prémiové služby.',en:'The leader who wants the best AND wants to understand why. Most premium brands refuse to explain their quality — they take it for granted. This zone turns education into an advantage. For expert products and premium B2B services.'},brands:['Bloomberg','Porsche (engineering content)','Bang & Olufsen','Specialized Bikes','McKinsey'],insight:{cs:'Zákazník ocení, když mu ukážete jak jste nejlepší — ne jen prohlásíte, že jste.',en:'The customer appreciates being shown how you\'re the best — not just told that you are.'}},
+  'CC-CU':{name:{cs:'Důvěryhodná odbornost',en:'Trustworthy Expertise'},sub:{cs:'Hluboké znalosti předávané s klidem a jistotou',en:'Deep knowledge delivered with calm and certainty'},opp:{cs:'Vzácná kombinace: zákazník chce hloubku, ale ne neklid — chce se učit a přitom cítit bezpečí. Vzdělanostní značky jsou obvykle studené, tradiční se hloubce vyhýbají. Tato mezera je obrovská v zdravotnictví, bankovnictví a vzdělávání.',en:'A rare combination: the customer wants depth, but not anxiety — they want to learn while feeling secure. Knowledge brands are usually cold, traditional brands avoid depth. This gap is huge in healthcare, banking, and education.'},brands:['Harvard Business Review','Mayo Clinic','etablované polikliniky','quality newspapers'],insight:{cs:'Expertiza bez klidu je hrozivá. Klid bez expertízy je prázdný. Spolu jsou nevyhnutelnou kombinací.',en:'Expertise without calm is threatening. Calm without expertise is hollow. Together they\'re an irresistible combination.'}},
+  'CC-FT':{name:{cs:'Teplá tradice',en:'Warm Tradition'},sub:{cs:'Zavedené hodnoty žité v komunitě',en:'Established values lived in community'},opp:{cs:'Nejde jen o rodinnou značku ani jen o tradiční značku — je to obojí najednou. Zákazník chce stabilitu A sdílení. Silná zóna pro lokální a komunitní značky s historií. Velký potenciál v potravinách, bance, pojišťovnictví.',en:'Not just a family brand or just a traditional brand — it\'s both at once. The customer wants stability AND sharing. A strong zone for local and community brands with history. Huge potential in food, banking, insurance.'},brands:['IKEA (heritage)','Czech heritage food','cooperative banks','Tchibo','Marks & Spencer Food'],insight:{cs:'Tradice bez komunity je muzeum. Komunita bez tradice je chaos. Tato zóna propojuje obé.',en:'Tradition without community is a museum. Community without tradition is chaos. This zone connects both.'}},
+  'FT-RE':{name:{cs:'Sdílená zábava',en:'Shared Fun'},sub:{cs:'Aktivní radost, která propojuje lidi',en:'Active joy that connects people'},opp:{cs:'Ne solo zážitek, ne pasivní konzumace — aktivní, sdílená radost. Desková hra, streamovací večer, sociální gaming. Mezera je velká: zábavní průmysl je buď příliš individuální nebo příliš pasivní. Enormní příležitost pro EdTech, gaming a food delivery.',en:'Not a solo experience, not passive consumption — active, shared joy. Board games, streaming night, social gaming. The gap is large: the entertainment industry is either too individual or too passive. Enormous opportunity for EdTech, gaming and food delivery.'},brands:['Jackbox Games','Kahoot!','Netflix party features','Albi (board games)','Dobble'],insight:{cs:'Zákazník nechce být bavený — chce se bavit spolu s někým. Navrhněte sdílení jako primární zážitek.',en:'The customer doesn\'t want to be entertained — they want to have fun together with someone. Design sharing as the primary experience.'}}
+};
+
+/* ────────────────────────────────────────────────────
+   TAB SWITCHING
+──────────────────────────────────────────────────── */
+function switchTab(tab){
+  document.getElementById('tabMap').classList.toggle('active',tab==='map');
+  document.getElementById('tabAnalyzer').classList.toggle('active',tab==='az');
+  document.getElementById('navMap').classList.toggle('active',tab==='map');
+  document.getElementById('navAz').classList.toggle('active',tab==='az');
+  if(tab==='az'){
+    if(pinnedInfo&&pinnedInfo.primary){
+      var iqMap=[17,50,83];
+      azState.targetSeg=pinnedInfo.primary.id;
+      azState.targetIq=iqMap[pinnedInfo.iqLevel]||50;
+      document.querySelectorAll('.az-iq-btn').forEach(function(b){
+        b.classList.toggle('active',parseInt(b.getAttribute('data-iq'))===azState.targetIq);
+      });
+      azUpdateTargetDisplay();
+      azUpdateBtn();
+    }
+    azRebuildTargetWheel();azBuildLoadingWheel();
+  }
+}
+
+/* ────────────────────────────────────────────────────
+   GEAR / API KEY
+──────────────────────────────────────────────────── */
+function toggleGear(e){e.stopPropagation();document.getElementById('gearPanel').classList.toggle('open');}
+document.addEventListener('click',function(e){var gw=document.querySelector('.gear-wrap');if(gw&&!gw.contains(e.target))document.getElementById('gearPanel').classList.remove('open');});
+function toggleKey(e){e.stopPropagation();var i=document.getElementById('apiKey');var btn=document.getElementById('showKeyBtn');if(i.type==='password'){i.type='text';btn.textContent=t('hideKey');}else{i.type='password';btn.textContent=t('showKey');}}
+
+/* load saved key */
+(function(){var k=localStorage.getItem('ns_ak');if(k)document.getElementById('apiKey').value=k;})();
+document.getElementById('apiKey').addEventListener('change',function(){localStorage.setItem('ns_ak',this.value.trim());azUpdateBtn();});
+
+/* ────────────────────────────────────────────────────
+   LANG
+──────────────────────────────────────────────────── */
+function g(obj){if(!obj)return '';if(typeof obj==='string')return obj;return obj[L]||obj.cs||'';}
+function t(k){return T[L][k]||k;}
+var T={
+  cs:{mapHint:'Pohybujte kurzorem po kole · klikněte pro ukotvení pozice',
+      pinBtn:'Ukotvit tuto pozici →',unpinBtn:'← Zrušit ukotvení',
+      genTxt:'Generovat positioning framework',printBtn:'Tisk / PDF',resetBtn:'Začít znovu',
+      labBrand:'Název vaší značky',labDesc:'Co děláte a pro koho',
+      secDesc:'Zákazník',secMust:'Značka musí být',secTone:'Tone of voice',secSay:'Say',secNever:'Never say',
+      secBrands:'Značky v tomto prostoru',secOpp:'Příležitost',secInsight:'Insight',
+      secPlatforms:'Kde jsou online',secStats:'Data',secLifestyle:'Lifestyle',
+      iqLow:'buduje',iqMid:'etabluje',iqHigh:'irrezistibilní',
+      blendLabel:'Blend segmentů',
+      cwarn:'Nezmapovaná pozice',cHead:'Rozmazaný positioning',
+      cBody:'Značka v centru promlouvá ke všem, ale žádný segment skutečně nevlastní. Zákazníci ji vnímají jako generickou.',
+      cTip:'Posuňte kurzor k okraji kola — tam jsou silné pozice.',
+      axTop:'↑ JÁ — individualismus, dominance',axL:'← introvert',axR:'extrovert →',axBot:'↓ MY — sociální vazby, komunita',
+      idleEye:'Pohybujte kurzorem po kole',idleH:'Prozkoumejte<br><em>positioning</em> prostor',
+      idleP:'Každý bod v kole je strategická pozice. Úhel = kombinace needstates. Poloměr = síla vlastnictví segmentu. Průsečíky segmentů jsou skryté příležitosti.',
+      gearLbl:'Anthropic API klíč',gearNote:'<strong>Potřebujete API klíč</strong> z <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — zdarma. Klíč zůstává jen v prohlížeči.',
+      showKey:'Zobrazit',hideKey:'Skrýt',
+      loadMsgs:['Analyzuji positioning prostor...','Definuji osobnost značky...','Sestavuji komunikační pravidla...','Finalizuji framework...']},
+  en:{mapHint:'Move cursor over the wheel · click to pin a position',
+      pinBtn:'Pin this position →',unpinBtn:'← Release position',
+      genTxt:'Generate positioning framework',printBtn:'Print / PDF',resetBtn:'Start over',
+      labBrand:'Your brand name',labDesc:'What you do and for whom',
+      secDesc:'Customer',secMust:'Brand must be',secTone:'Tone of voice',secSay:'Say',secNever:'Never say',
+      secBrands:'Brands in this space',secOpp:'Opportunity',secInsight:'Insight',
+      secPlatforms:'Where they are online',secStats:'Data',secLifestyle:'Lifestyle',
+      iqLow:'building',iqMid:'establishing',iqHigh:'irresistible',
+      blendLabel:'Segment blend',
+      cwarn:'Unmapped position',cHead:'Blurred positioning',
+      cBody:'A brand in the centre speaks to all segments but truly owns none. Customers perceive it as generic.',
+      cTip:'Move the cursor toward the edge of the wheel — that\'s where strong positions are.',
+      axTop:'↑ EGO — individualism, dominance',axL:'← introvert',axR:'extrovert →',axBot:'↓ SOCIAL — bonds, community',
+      idleEye:'Move cursor over the wheel',idleH:'Explore the<br><em>positioning</em> space',
+      idleP:'Every point in the wheel is a strategic position. Angle = needstate combination. Radius = ownership strength. Segment intersections are hidden opportunities.',
+      gearLbl:'Anthropic API key',gearNote:'<strong>You need an API key</strong> from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — free. Key stays only in your browser.',
+      showKey:'Show',hideKey:'Hide',
+      loadMsgs:['Analysing positioning space...','Defining brand personality...','Building communication rules...','Finalising framework...']}
+};
+
+function setLang(l){
+  L=l;
+  document.getElementById('btnCZ').classList.toggle('on',l==='cs');
+  document.getElementById('btnEN').classList.toggle('on',l==='en');
+  applyLangStatic();
+  SEG.forEach(function(s){
+    var el=document.getElementById('lbl-'+s.id);
+    if(el)el.textContent=l==='en'?s.en:s.cz;
+  });
+  if(lastInfo)renderPanel(lastInfo);
+  azUpdateTargetDisplay();
+}
+
+function applyLangStatic(){
+  document.getElementById('mapHintTxt').textContent=t('mapHint');
+  document.getElementById('idleEye').textContent=t('idleEye');
+  document.getElementById('idleH').innerHTML=t('idleH');
+  document.getElementById('idleP').textContent=t('idleP');
+  document.getElementById('axTop').textContent=t('axTop');
+  document.getElementById('axL').textContent=t('axL');
+  document.getElementById('axR').textContent=t('axR');
+  document.getElementById('axBot').textContent=t('axBot');
+  document.getElementById('gearLbl').textContent=t('gearLbl');
+  document.getElementById('gearNote').innerHTML=t('gearNote');
+  document.getElementById('showKeyBtn').textContent=t('showKey');
+  document.getElementById('labBrand').textContent=t('labBrand');
+  document.getElementById('labDesc').textContent=t('labDesc');
+  document.getElementById('genTxt').textContent=t('genTxt');
+  document.getElementById('unpinBtn').textContent=t('unpinBtn');
+  document.getElementById('cwarnTxt').textContent=t('cwarn');
+  document.getElementById('centerH').textContent=t('cHead');
+  document.getElementById('centerP').textContent=t('cBody');
+  document.getElementById('centerTip').textContent=t('cTip');
+}
+
+/* ════════════════════════════════════════════════════
+   MAP TAB — v7 LOGIC
+════════════════════════════════════════════════════ */
+function angDist(a,b){var d=Math.abs(a-b)%360;return d>180?360-d:d;}
+function blendHex(c1,c2,w1){
+  var r1=parseInt(c1.slice(1,3),16),g1=parseInt(c1.slice(3,5),16),b1=parseInt(c1.slice(5,7),16);
+  var r2=parseInt(c2.slice(1,3),16),g2=parseInt(c2.slice(3,5),16),b2=parseInt(c2.slice(5,7),16);
+  var r=Math.round(r1*w1+r2*(1-w1)),gv=Math.round(g1*w1+g2*(1-w1)),b=Math.round(b1*w1+b2*(1-w1));
+  return '#'+r.toString(16).padStart(2,'0')+gv.toString(16).padStart(2,'0')+b.toString(16).padStart(2,'0');
+}
+function getZoneInfo(angleDeg,radiusNorm){
+  if(radiusNorm<0.27)return{type:'center'};
+  var dists=SEG.map(function(s,i){return{i:i,s:s,d:angDist(angleDeg,s.angle)};});
+  dists.sort(function(a,b){return a.d-b.d;});
+  var p=dists[0],sec=dists[1];
+  var total=p.d+sec.d;
+  var pw=total>0?sec.d/total:1;
+  var sw=1-pw;
+  var iqLvl=radiusNorm<0.48?0:radiusNorm<0.73?1:2;
+  var isPure=p.d<22;
+  var bKey=[p.s.id,sec.s.id].sort().join('-');
+  return{type:isPure?'pure':'boundary',primary:p.s,secondary:sec.s,primaryWeight:pw,secondaryWeight:sw,primaryDist:p.d,iqLevel:iqLvl,radiusNorm:radiusNorm,boundaryKey:bKey};
+}
+
+var CX=300,CY=300,RO=175,RI=58,RZ1=92,RZ2=134,RLAB=238;
+var pinnedInfo=null,lastInfo=null,rafId=null,pendingEvt=null;
+
+function buildWheel(){
+  var svg=document.getElementById('mapSvg');
+  var h='',dots='';
+  SEG.forEach(function(s){
+    var sa=s.angle-30,ea=s.angle+30;
+    function P(a,r){var rad=(a-90)*Math.PI/180;return[CX+r*Math.cos(rad),CY+r*Math.sin(rad)];}
+    function arc(r1,r2,sa2,ea2){
+      var p1=P(sa2,r2),p2=P(ea2,r2),p3=P(ea2,r1),p4=P(sa2,r1);
+      return 'M'+p1[0].toFixed(1)+','+p1[1].toFixed(1)+' A'+r2+','+r2+' 0 0,1 '+p2[0].toFixed(1)+','+p2[1].toFixed(1)+' L'+p3[0].toFixed(1)+','+p3[1].toFixed(1)+' A'+r1+','+r1+' 0 0,0 '+p4[0].toFixed(1)+','+p4[1].toFixed(1)+'Z';
+    }
+    h+='<g class="wseg" id="wseg-'+s.id+'">';
+    h+='<path d="'+arc(RI,RZ1,sa,ea)+'" fill="'+s.color+'" opacity=".18" stroke="none"/>';
+    h+='<path d="'+arc(RZ1,RZ2,sa,ea)+'" fill="'+s.color+'" opacity=".44" stroke="none"/>';
+    h+='<path d="'+arc(RZ2,RO,sa,ea)+'" fill="'+s.color+'" opacity=".76" stroke="none"/>';
+    h+='</g>';
+    dots+='<div class="dot" style="background:'+s.color+'"></div>';
+  });
+  SEG.forEach(function(s){
+    var boundAngle=s.angle-30;
+    var rad=(boundAngle-90)*Math.PI/180;
+    var x1=(CX+RI*Math.cos(rad)).toFixed(1),y1=(CY+RI*Math.sin(rad)).toFixed(1);
+    var x2=(CX+RO*Math.cos(rad)).toFixed(1),y2=(CY+RO*Math.sin(rad)).toFixed(1);
+    h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#fff" stroke-width="1.5" pointer-events="none"/>';
+  });
+  h+='<circle cx="'+CX+'" cy="'+CY+'" r="'+RI+'" fill="#fff" stroke="rgba(0,0,0,.07)" stroke-width="1"/>';
+  h+='<text x="'+CX+'" y="'+(CY-8)+'" text-anchor="middle" font-size="8.5" fill="rgba(0,0,0,.25)" font-family="DM Sans,sans-serif">NeedScope\u00ae</text>';
+  h+='<text x="'+CX+'" y="'+(CY+7)+'" text-anchor="middle" font-size="8.5" fill="rgba(0,0,0,.18)" font-family="DM Sans,sans-serif">CZ 2023</text>';
+  h+='<circle cx="'+CX+'" cy="'+CY+'" r="'+RZ1+'" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="0.8" stroke-dasharray="2 5" pointer-events="none"/>';
+  h+='<circle cx="'+CX+'" cy="'+CY+'" r="'+RZ2+'" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="0.8" stroke-dasharray="2 5" pointer-events="none"/>';
+  h+='<line x1="'+CX+'" y1="24" x2="'+CX+'" y2="576" stroke="rgba(0,0,0,.04)" stroke-width="0.5" pointer-events="none"/>';
+  h+='<line x1="24" y1="'+CY+'" x2="576" y2="'+CY+'" stroke="rgba(0,0,0,.04)" stroke-width="0.5" pointer-events="none"/>';
+  h+='<g id="cursorG" style="display:none" pointer-events="none">';
+  h+='<line id="guide1" x1="0" y1="0" x2="0" y2="0" stroke-width="1" stroke-dasharray="4 3" stroke="rgba(0,0,0,.18)"/>';
+  h+='<circle id="cursorRing" cx="0" cy="0" r="16" fill="none" stroke-width="1.2" opacity=".45"/>';
+  h+='<circle id="cursorDot" cx="0" cy="0" r="6" stroke="white" stroke-width="1.5"/>';
+  h+='<circle id="pinnedRing" cx="0" cy="0" r="10" fill="white" stroke-width="2" style="display:none"/>';
+  h+='</g>';
+  svg.innerHTML=h;
+  document.getElementById('idleDots').innerHTML=dots;
+}
+
+function getSVGCoords(evt){
+  var wrap=document.getElementById('mapWrap');
+  var rect=wrap.getBoundingClientRect();
+  var scale=600/rect.width;
+  var clientX=evt.clientX,clientY=evt.clientY;
+  if(evt.touches&&evt.touches.length>0){clientX=evt.touches[0].clientX;clientY=evt.touches[0].clientY;}
+  else if(evt.changedTouches&&evt.changedTouches.length>0){clientX=evt.changedTouches[0].clientX;clientY=evt.changedTouches[0].clientY;}
+  return{x:(clientX-rect.left)*scale,y:(clientY-rect.top)*scale};
+}
+
+function updateCursor(x,y,color,iq,pinned){
+  var g=document.getElementById('cursorG');g.style.display='';
+  var dot=document.getElementById('cursorDot'),ring=document.getElementById('cursorRing');
+  var guide=document.getElementById('guide1'),pr=document.getElementById('pinnedRing');
+  dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('fill',color);
+  var ringR=14+iq*12;
+  ring.setAttribute('cx',x);ring.setAttribute('cy',y);ring.setAttribute('r',ringR.toFixed(1));ring.setAttribute('stroke',color);
+  if(pinned){pr.style.display='';pr.setAttribute('cx',x);pr.setAttribute('cy',y);pr.setAttribute('stroke',color);}else{pr.style.display='none';}
+  var midR=(RZ1+RZ2)/2;
+  var pSeg=lastInfo&&lastInfo.primary?lastInfo.primary:null;
+  if(pSeg){
+    var rad=(pSeg.angle-90)*Math.PI/180;
+    var gx=CX+midR*Math.cos(rad),gy=CY+midR*Math.sin(rad);
+    guide.setAttribute('x1',x.toFixed(1));guide.setAttribute('y1',y.toFixed(1));
+    guide.setAttribute('x2',gx.toFixed(1));guide.setAttribute('y2',gy.toFixed(1));
+    guide.setAttribute('stroke',pSeg.color);guide.style.display='';
+  }else{guide.style.display='none';}
+}
+
+function hideCursor(){document.getElementById('cursorG').style.display='none';}
+
+function handleMove(evt){
+  pendingEvt=evt;
+  if(!rafId){rafId=requestAnimationFrame(function(){if(pendingEvt){processMove(pendingEvt);pendingEvt=null;}rafId=null;});}
+}
+function processMove(evt){
+  var coords=getSVGCoords(evt);
+  var dx=coords.x-CX,dy=coords.y-CY,dist=Math.sqrt(dx*dx+dy*dy),radiusNorm=dist/RO;
+  if(radiusNorm>1.3){if(!pinnedInfo)hideCursor();return;}
+  var angleDeg=(Math.atan2(dy,dx)*180/Math.PI+90+360)%360;
+  var info=getZoneInfo(angleDeg,radiusNorm);
+  lastInfo=info;
+  if(pinnedInfo)return;
+  var color=info.primary?blendHex(info.primary.color,info.secondary?info.secondary.color:info.primary.color,info.primaryWeight||1):'#888';
+  updateCursor(coords.x,coords.y,color,Math.min(radiusNorm,1),false);
+  renderPanel(info);
+}
+function handleClick(evt){
+  var coords=getSVGCoords(evt);
+  var dx=coords.x-CX,dy=coords.y-CY,dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist/RO>1.15)return;
+  if(pinnedInfo){unpin();return;}
+  if(!lastInfo||lastInfo.type==='center')return;
+  pinPosition();
+}
+function pinPosition(){
+  if(!lastInfo||lastInfo.type==='center')return;
+  pinnedInfo=lastInfo;
+  var p=pinnedInfo.primary;
+  var color=blendHex(p.color,pinnedInfo.secondary?pinnedInfo.secondary.color:p.color,pinnedInfo.primaryWeight||1);
+  var coords=getSVGCoords.__last||{x:CX,y:CY-100};
+  updateCursor(coords.x,coords.y,color,Math.min(pinnedInfo.radiusNorm,1),true);
+  document.getElementById('genBtn').style.background=color;
+  document.getElementById('pinSection').style.display='none';
+  document.getElementById('formSection').style.display='block';
+  document.getElementById('toAnalyzerBtn').style.display='flex';
+  document.getElementById('resultSection').style.display='none';
+  document.getElementById('loadWrap').style.display='flex';
+  renderPanel(lastInfo);
+}
+function unpin(){
+  pinnedInfo=null;
+  document.getElementById('genBtn').style.background='';
+  document.getElementById('formSection').style.display='none';
+  document.getElementById('resultSection').style.display='none';
+  document.getElementById('toAnalyzerBtn').style.display='none';
+  document.getElementById('pinSection').style.display='block';
+  document.getElementById('bName').value='';
+  document.getElementById('bDesc').value='';
+  renderPanel(lastInfo);
+}
+
+/* Cross-tab: go to Analyzer with pinned seg pre-selected */
+function goToAnalyzerWithPin(){
+  if(!pinnedInfo||!pinnedInfo.primary)return;
+  var iqMap=[17,50,83];
+  azState.targetSeg=pinnedInfo.primary.id;
+  azState.targetIq=iqMap[pinnedInfo.iqLevel]||50;
+  azRebuildTargetWheel();
+  azUpdateTargetDisplay();
+  document.querySelectorAll('.az-iq-btn').forEach(function(b){
+    b.classList.toggle('active',parseInt(b.getAttribute('data-iq'))===azState.targetIq);
+  });
+  azUpdateBtn();
+  switchTab('az');
+}
+
+function renderPanel(info){
+  var ip=document.getElementById('idlePanel'),zp=document.getElementById('zonePanel'),cp=document.getElementById('centerPanel');
+  ip.style.display='none';zp.style.display='none';cp.style.display='none';
+  if(!info){ip.style.display='flex';return;}
+  if(info.type==='center'){cp.style.display='flex';return;}
+  zp.style.display='flex';
+  var p=info.primary,s=info.secondary,isPure=info.type==='pure';
+  var color=blendHex(p.color,s?s.color:p.color,info.primaryWeight||1);
+  document.getElementById('zpTagDot').style.background=color;
+  document.getElementById('zpTag').style.cssText='background:'+p.bg+';color:'+p.color+';';
+  document.getElementById('zpTagTxt').textContent=isPure?(L==='en'?p.en:p.cz):(L==='en'?p.en:p.cz)+' + '+(L==='en'?s.en:s.cz);
+  document.getElementById('zpName').style.color=p.color;
+  var bz=BOUNDARY[info.boundaryKey];
+  document.getElementById('zpName').textContent=isPure?(L==='en'?p.en:p.cz):g(bz.name);
+  document.getElementById('zpSub').textContent=isPure?g(p.arch):g(bz.sub);
+  var iqPct=Math.round(info.radiusNorm*100);
+  var iqText=g(p.iqlevel)[info.iqLevel];
+  var blendHtml='';
+  if(!isPure){
+    var pw=Math.round(info.primaryWeight*100),sw=100-pw;
+    blendHtml='<div class="blend-bar"><div class="blend-labels"><span style="color:'+p.color+'">'+pw+'% '+(L==='en'?p.en:p.cz)+'</span><span style="color:'+s.color+'">'+sw+'% '+(L==='en'?s.en:s.cz)+'</span></div><div class="blend-track" style="margin-top:5px"><div class="blend-seg1" style="width:'+pw+'%;background:'+p.color+'dd"></div><div class="blend-seg2" style="width:'+sw+'%;background:'+s.color+'dd"></div></div></div>';
+  }
+  var platHtml=p.platforms.map(function(pl){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:11px;width:130px;flex-shrink:0;color:var(--tx)">'+g(pl.n||pl)+'</span><div style="flex:1;height:3px;background:var(--di);border-radius:2px;overflow:hidden"><div style="width:'+pl.pct+'%;height:100%;background:'+p.color+';border-radius:2px"></div></div><span style="font-size:10px;color:var(--mu);width:28px;text-align:right">'+pl.pct+'%</span></div>';}).join('');
+  var statHtml='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+p.stats.map(function(st){return '<div style="background:var(--sur);border:0.5px solid var(--bdr);border-radius:6px;padding:7px 8px"><div style="font-family:\'Instrument Serif\',serif;font-size:18px;color:'+p.color+'">'+st.v+'</div><div style="font-size:9.5px;color:var(--mu);line-height:1.4;margin-top:2px">'+g(st.d)+'</div></div>';}).join('')+'</div>';
+  var ltHtml=g(p.ltags).map(function(t2){return '<span style="font-size:10.5px;padding:3px 8px;border-radius:4px;background:var(--sur);border:0.5px solid var(--bdr);color:var(--mu)">'+t2+'</span>';}).join('');
+  var oppHtml=isPure?'':('<div class="opp-box"><strong>'+g(bz.opp)+'</strong></div><div style="margin-top:8px;padding:8px 10px;background:var(--sur2);border-radius:6px;border:0.5px solid var(--bdr);font-size:11.5px;color:var(--mu)">'+g(bz.insight)+'</div>');
+  var brandsArr=isPure?p.brands:bz.brands;
+  var brandsHtml='<div class="brands-row">'+brandsArr.map(function(b){return '<span class="brand-pill">'+b+'</span>';}).join('')+'</div>';
+  document.getElementById('zpBody').innerHTML=
+    blendHtml+
+    '<div class="iq-block"><div class="iq-top"><span class="iq-label">IQ — '+(L==='cs'?'síla pozice':'position strength')+'</span><span class="iq-val" style="color:'+color+'">'+iqPct+'%</span></div><div class="iq-track"><div class="iq-fill" style="width:'+iqPct+'%;background:'+color+'"></div></div><div class="iq-ticks"><span>'+t('iqLow')+'</span><span>'+t('iqMid')+'</span><span>'+t('iqHigh')+'</span></div><div class="iq-note">'+iqText+'</div></div>'+
+    (isPure?'<div class="sec"><span class="sec-lbl">'+t('secDesc')+'</span><div class="sec-txt">'+g(p.desc)+'</div></div>':'')+
+    (isPure?'<div class="sec"><span class="sec-lbl">'+t('secMust')+'</span><div class="traits">'+g(p.must).map(function(x){return '<span class="trait" style="border-color:'+p.color+'55;color:'+p.color+';background:'+p.bg+'">'+x+'</span>';}).join('')+'</div></div>':'')+
+    (isPure?'<div class="sec"><span class="sec-lbl">'+t('secTone')+'</span><div class="tone-txt">'+g(p.tone)+'</div></div>':'')+
+    (!isPure?'<div class="sec"><span class="sec-lbl">'+t('secOpp')+'</span>'+oppHtml+'</div>':'')+
+    (isPure?'<div class="sec"><span class="sec-lbl">'+t('secSay')+'</span><ul class="say-list do">'+g(p.say).map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>':'')+
+    (isPure?'<div class="sec"><span class="sec-lbl">'+t('secNever')+'</span><ul class="say-list dont">'+g(p.notsay).map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>':'')+
+    '<div class="sec"><span class="sec-lbl">'+t('secBrands')+'</span>'+brandsHtml+'</div>'+
+    '<div style="height:0.5px;background:var(--bdr);margin:12px 0"></div>'+
+    '<div style="margin-bottom:6px;display:flex;align-items:center;gap:7px"><span style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border-radius:3px;background:var(--sur);border:0.5px solid var(--bdr);color:var(--mu)">Mediální DNA</span><span style="font-size:9.5px;color:var(--di)">CvS 2025 · Lifestyle 2024</span></div>'+
+    '<div class="sec"><span class="sec-lbl">'+t('secPlatforms')+'</span>'+platHtml+'</div>'+
+    '<div class="sec"><span class="sec-lbl">'+t('secStats')+'</span>'+statHtml+'</div>'+
+    '<div class="sec"><span class="sec-lbl">'+t('secLifestyle')+'</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">'+ltHtml+'</div></div>';
+  document.getElementById('pinBtn').textContent=t('pinBtn');
+  document.getElementById('pinBtn').style.background=p.color;
+}
+
+async function generate(){
+  var apiKey=document.getElementById('apiKey').value.trim();
+  var bName=document.getElementById('bName').value.trim();
+  var bDesc=document.getElementById('bDesc').value.trim();
+  if(!apiKey){document.getElementById('gearPanel').classList.add('open');document.getElementById('apiKey').focus();return;}
+  if(!bName){document.getElementById('bName').focus();return;}
+  var info=pinnedInfo,p=info.primary,s=info.secondary,isPure=info.type==='pure';
+  var segName=L==='en'?p.en:p.cz;
+  var bz=isPure?null:BOUNDARY[info.boundaryKey];
+  var pos=isPure?segName:(g(bz.name)+' ('+segName+' + '+(L==='en'?s.en:s.cz)+')');
+  var plats=p.platforms.map(function(pl){return (g(pl.n||pl))+' '+pl.pct+'%';}).join(', ');
+  var statsStr=p.stats.map(function(st){return st.v+' '+g(st.d);}).join(' | ');
+  var brands=isPure?p.brands.join(', '):bz.brands.join(', ');
+  var oppCtx=isPure?'':('\nBOUNDARY OPPORTUNITY: '+g(bz.opp)+'\n'+g(bz.insight));
+  var outputLang=L==='en'?'English':'Czech';
+  var prompt='You are a senior brand strategist with deep NeedScope\u00ae expertise (Kantar). Create a complete positioning framework.\n\nBRAND: '+bName+'\nDESCRIPTION: '+(bDesc||'not provided')+'\nPOSITION: '+pos+' ('+Math.round(info.radiusNorm*100)+'% IQ strength)\nARCHETYPE: '+g(p.arch)+'\nBRANDS IN THIS SPACE: '+brands+'\nMEDIA CONTEXT: '+plats+' | '+statsStr+oppCtx+'\n\nWrite entirely in '+outputLang+'. Be concrete and actionable. No generic statements.\n\n## Positioning Statement\nWho you are, for whom, why different. Max 3 sentences.\n\n## Customer Portrait\nAge, lifestyle, values, fears, how they decide. Be specific.\n\n## Brand Core\n**Essence:** One sentence.\n**Archetype:** Which and why.\n**3 key values** with what each means to the customer.\n**Brand Idea:** The overarching concept.\n\n## Value Proposition\nFunctional, emotional and social benefits for this specific position.\n\n## Tone of Voice\n**Voice:** 3 adjectives with explanation.\n**Do:** 5 rules with example phrasings.\n**Don\'t:** 5 prohibitions with explanation.\n**3 example headlines** directly for '+bName+'.\n\n## Media Strategy\nFor the 3 key channels in this position: format, tone, what to avoid.\n\n## Behaviour in Key Situations\nFirst contact / complaint / success moment / brand crisis.\n\n## White Space\nWhat '+bName+' does differently by owning this position.';
+  document.getElementById('resultSection').style.display='block';
+  document.getElementById('loadWrap').style.display='flex';
+  document.getElementById('resBody').innerHTML='';
+  document.getElementById('resFooter').style.display='none';
+  var msgs=t('loadMsgs');var mi=0;
+  var ti=setInterval(function(){if(mi<msgs.length-1){mi++;document.getElementById('loadMsg').textContent=msgs[mi];}},1300);
+  document.getElementById('loadMsg').textContent=msgs[0];
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2800,messages:[{role:'user',content:prompt}]})});
+    clearInterval(ti);
+    if(!r.ok){var e=await r.json();throw new Error(e.error&&e.error.message?e.error.message:'API '+r.status);}
+    var d=await r.json();
+    var txt=d.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    document.getElementById('loadWrap').style.display='none';
+    document.getElementById('resBody').innerHTML=md2h(txt);
+    document.getElementById('resFooter').style.display='flex';
+    document.getElementById('printBtn').textContent=t('printBtn');
+    document.getElementById('resetBtn').textContent=t('resetBtn');
+    document.getElementById('resultSection').scrollIntoView({behavior:'smooth'});
+  }catch(e){clearInterval(ti);document.getElementById('loadWrap').innerHTML='<p style="color:#a02028;font-size:12px">'+e.message+'</p>';}
+}
+
+function md2h(md){
+  var lines=md.split('\n'),o=[],inL=false,lt='ul';
+  function b(s){return s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');}
+  for(var i=0;i<lines.length;i++){
+    var t2=lines[i].trim();
+    if(!t2){if(inL){o.push('</'+lt+'>');inL=false;}continue;}
+    if(t2.startsWith('## ')){if(inL){o.push('</'+lt+'>');inL=false;}o.push('<h2>'+b(t2.slice(3))+'</h2>');}
+    else if(t2.startsWith('### ')){if(inL){o.push('</'+lt+'>');inL=false;}o.push('<h3>'+b(t2.slice(4))+'</h3>');}
+    else if(t2.startsWith('- ')||t2.startsWith('* ')){if(!inL){lt='ul';o.push('<ul>');inL=true;}o.push('<li>'+b(t2.slice(2))+'</li>');}
+    else if(/^\d+\.\s/.test(t2)){if(!inL){lt='ol';o.push('<ol>');inL=true;}o.push('<li>'+b(t2.replace(/^\d+\.\s/,''))+'</li>');}
+    else if(t2.startsWith('> ')){if(inL){o.push('</'+lt+'>');inL=false;}o.push('<blockquote>'+b(t2.slice(2))+'</blockquote>');}
+    else{if(inL){o.push('</'+lt+'>');inL=false;}o.push('<p>'+b(t2)+'</p>');}
+  }
+  if(inL)o.push('</'+lt+'>');
+  return o.join('');
+}
+
+/* init map */
+var wrap=document.getElementById('mapWrap');
+var isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+if(isTouch){
+  wrap.addEventListener('touchstart',function(e){e.preventDefault();getSVGCoords.__last=getSVGCoords(e);handleMove(e);},{passive:false});
+  wrap.addEventListener('touchmove',function(e){e.preventDefault();getSVGCoords.__last=getSVGCoords(e);handleMove(e);},{passive:false});
+  wrap.addEventListener('touchend',function(e){
+    e.preventDefault();
+    var coords=getSVGCoords(e);
+    var dx=coords.x-CX,dy=coords.y-CY,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist/RO>1.15)return;
+    if(pinnedInfo){unpin();return;}
+    if(!lastInfo||lastInfo.type==='center')return;
+    pinPosition();
+  },{passive:false});
+}else{
+  wrap.addEventListener('mousemove',function(e){getSVGCoords.__last=getSVGCoords(e);handleMove(e);});
+  wrap.addEventListener('mouseleave',function(){/* panel stays visible when moving to read right side */});
+  wrap.addEventListener('click',handleClick);
+}
+
+function buildHtmlLabels(){
+  var container=document.getElementById('labelsOverlay');if(!container)return;
+  var segs=[{id:'RE',angle:0},{id:'IE',angle:60},{id:'UE',angle:120},{id:'CU',angle:180},{id:'CC',angle:240},{id:'FT',angle:300}];
+  container.innerHTML='';
+  segs.forEach(function(s2){
+    var seg=SEG.find(function(x){return x.id===s2.id;});
+    var rad=(s2.angle-90)*Math.PI/180,RLAB_NORM=238/600,cx=0.5,cy=0.5;
+    var lx=cx+RLAB_NORM*Math.cos(rad),ly=cy+RLAB_NORM*Math.sin(rad);
+    var el=document.createElement('div');
+    el.className='seg-lbl';el.id='hlbl-'+seg.id;
+    el.style.left=(lx*100)+'%';el.style.top=(ly*100)+'%';el.style.color=seg.color;
+    el.innerHTML='<span class="seg-lbl-name" id="lbl-'+seg.id+'">'+(L==='en'?seg.en:seg.cz)+'</span><span class="seg-lbl-pct" id="pct-'+seg.id+'">'+seg.pct+'%</span>';
+    container.appendChild(el);
+  });
+}
+
+buildWheel();
+buildHtmlLabels();
+applyLangStatic();
+if(isTouch){var hintEl=document.getElementById('mapHintTxt');if(hintEl)hintEl.textContent=L==='cs'?'Posouvejte prst po kole · klepněte pro ukotvení':'Drag finger over wheel · tap to pin';}
+
+/* ════════════════════════════════════════════════════
+   ANALYZER TAB
+════════════════════════════════════════════════════ */
+var azState={
+  targetSeg:null,
+  targetIq:50,
+  tab:'text',
+  imgB64:null,
+  imgType:null,
+  busy:false
+};
+
+/* --- mini wheel helpers --- */
+var AZ_CX=300,AZ_CY=300,AZ_RO=162,AZ_RI=54,AZ_RZ1=90,AZ_RZ2=128,AZ_RLAB=230;
+
+function azP(a,r,cx,cy){var rad=(a-90)*Math.PI/180;return[cx+r*Math.cos(rad),cy+r*Math.sin(rad)];}
+function azArc(r1,r2,sa,ea,cx,cy){
+  cx=cx||AZ_CX;cy=cy||AZ_CY;
+  var p1=azP(sa,r2,cx,cy),p2=azP(ea,r2,cx,cy),p3=azP(ea,r1,cx,cy),p4=azP(sa,r1,cx,cy);
+  return 'M'+p1[0].toFixed(1)+','+p1[1].toFixed(1)+' A'+r2+','+r2+' 0 0,1 '+p2[0].toFixed(1)+','+p2[1].toFixed(1)+' L'+p3[0].toFixed(1)+','+p3[1].toFixed(1)+' A'+r1+','+r1+' 0 0,0 '+p4[0].toFixed(1)+','+p4[1].toFixed(1)+'Z';
+}
+
+function azRebuildTargetWheel(){
+  var svg=document.getElementById('azTargetSvg');
+  if(!svg)return;
+  var h='';
+  SEG.forEach(function(s){
+    var sa=s.angle-30,ea=s.angle+30;
+    // 3 IQ zones per segment
+    [[AZ_RI,AZ_RZ1,0.18],[AZ_RZ1,AZ_RZ2,0.44],[AZ_RZ2,AZ_RO,0.76]].forEach(function(zz){
+      var op=zz[2];
+      if(azState.targetSeg===s.id) op=Math.min(op+0.18,1);
+      h+='<path d="'+azArc(zz[0],zz[1],sa,ea)+'" fill="'+s.color+'" opacity="'+op+'" stroke="none"/>';
+    });
+    // Separator
+    var rad=(s.angle-30-90)*Math.PI/180;
+    h+='<line x1="'+(AZ_CX+AZ_RI*Math.cos(rad)).toFixed(1)+'" y1="'+(AZ_CY+AZ_RI*Math.sin(rad)).toFixed(1)+'" x2="'+(AZ_CX+AZ_RO*Math.cos(rad)).toFixed(1)+'" y2="'+(AZ_CY+AZ_RO*Math.sin(rad)).toFixed(1)+'" stroke="#fff" stroke-width="1.5" pointer-events="none"/>';
+  });
+  // Zone ring guides
+  h+='<circle cx="'+AZ_CX+'" cy="'+AZ_CY+'" r="'+AZ_RZ1+'" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="0.8" stroke-dasharray="2 5" pointer-events="none"/>';
+  h+='<circle cx="'+AZ_CX+'" cy="'+AZ_CY+'" r="'+AZ_RZ2+'" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="0.8" stroke-dasharray="2 5" pointer-events="none"/>';
+  h+='<circle cx="'+AZ_CX+'" cy="'+AZ_CY+'" r="'+AZ_RI+'" fill="#fff" stroke="rgba(0,0,0,.07)" stroke-width="1" pointer-events="none"/>';
+  h+='<line x1="'+AZ_CX+'" y1="20" x2="'+AZ_CX+'" y2="580" stroke="rgba(0,0,0,.04)" stroke-width="0.5" pointer-events="none"/>';
+  h+='<line x1="20" y1="'+AZ_CY+'" x2="580" y2="'+AZ_CY+'" stroke="rgba(0,0,0,.04)" stroke-width="0.5" pointer-events="none"/>';
+  // Cursor group
+  h+='<g id="azCursorG" style="display:none" pointer-events="none">';
+  h+='<line id="azGuide" x1="0" y1="0" x2="0" y2="0" stroke-width="1" stroke-dasharray="4 3"/>';
+  h+='<circle id="azCursorRing" cx="0" cy="0" r="20" fill="none" stroke-width="1.2" opacity=".45"/>';
+  h+='<circle id="azCursorDot" cx="0" cy="0" r="6" stroke="white" stroke-width="1.5"/>';
+  h+='<circle id="azPinnedRing" cx="0" cy="0" r="10" fill="white" stroke-width="2" style="display:none"/>';
+  h+='</g>';
+  svg.innerHTML=h;
+  // Rebuild HTML labels
+  azBuildLabels();
+  // Reapply pinned cursor if selected
+  if(azState.targetSeg){
+    var seg=SEG.find(function(s){return s.id===azState.targetSeg;});
+    var frac=azState.targetIq/100;
+    var r=AZ_RI+(AZ_RO-AZ_RI)*frac*0.88;
+    var rad=(seg.angle-90)*Math.PI/180;
+    var px=AZ_CX+r*Math.cos(rad),py=AZ_CY+r*Math.sin(rad);
+    azShowPin(px,py,seg.color);
+  }
+}
+
+function azBuildLabels(){
+  var cont=document.getElementById('azLabelsOverlay');
+  if(!cont)return;
+  cont.innerHTML='';
+  SEG.forEach(function(s){
+    var rad=(s.angle-90)*Math.PI/180;
+    var lx=AZ_CX+AZ_RLAB*Math.cos(rad),ly=AZ_CY+AZ_RLAB*Math.sin(rad);
+    var el=document.createElement('div');
+    el.style.cssText='position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;line-height:1.3;left:'+(lx/600*100)+'%;top:'+(ly/600*100)+'%';
+    el.innerHTML='<span style="font-size:11px;font-weight:500;font-family:var(--f);display:block;color:'+s.color+'">'+(L==='en'?s.en:s.cz)+'</span><span style="font-size:9.5px;font-family:var(--f);color:'+s.color+';opacity:.65;display:block">'+s.pct+'%</span>';
+    cont.appendChild(el);
+  });
+}
+
+function azShowPin(px,py,color){
+  var g=document.getElementById('azCursorG');if(!g)return;
+  g.style.display='';
+  var d=document.getElementById('azCursorDot'),r=document.getElementById('azCursorRing');
+  var p=document.getElementById('azPinnedRing'),gl=document.getElementById('azGuide');
+  d.setAttribute('cx',px);d.setAttribute('cy',py);d.setAttribute('fill',color);
+  r.setAttribute('cx',px);r.setAttribute('cy',py);r.setAttribute('r','22');r.setAttribute('stroke',color);
+  p.style.display='';p.setAttribute('cx',px);p.setAttribute('cy',py);p.setAttribute('stroke',color);
+  gl.style.display='none';
+}
+
+function azHideCursor(){var g=document.getElementById('azCursorG');if(g)g.style.display='none';}
+
+function azGetSVGCoords(evt,wrap){
+  var rect=wrap.getBoundingClientRect();
+  var scale=600/rect.width;
+  var cx=evt.clientX,cy=evt.clientY;
+  if(evt.touches&&evt.touches.length>0){cx=evt.touches[0].clientX;cy=evt.touches[0].clientY;}
+  else if(evt.changedTouches&&evt.changedTouches.length>0){cx=evt.changedTouches[0].clientX;cy=evt.changedTouches[0].clientY;}
+  return{x:(cx-rect.left)*scale,y:(cy-rect.top)*scale};
+}
+
+var azLastCoords=null;
+function azHandleMove(evt){
+  var wrap=document.getElementById('azWheelWrap');if(!wrap)return;
+  if(azState.targetSeg)return;
+  var coords=azGetSVGCoords(evt,wrap);
+  azLastCoords=coords;
+  var dx=coords.x-AZ_CX,dy=coords.y-AZ_CY;
+  var dist=Math.sqrt(dx*dx+dy*dy),rn=dist/AZ_RO;
+  if(rn>1.25){azHideCursor();return;}
+  if(rn<0.25){azHideCursor();return;}
+  var angle=(Math.atan2(dy,dx)*180/Math.PI+90+360)%360;
+  var dists=SEG.map(function(s){return{s:s,d:Math.abs(angle-s.angle)%360};});
+  dists.forEach(function(d){if(d.d>180)d.d=360-d.d;});
+  dists.sort(function(a,b){return a.d-b.d;});
+  var pSeg=dists[0].s,sSeg=dists[1].s;
+  var color=blendHex(pSeg.color,sSeg.color,dists[1].d/(dists[0].d+dists[1].d));
+  var g=document.getElementById('azCursorG');if(!g)return;
+  g.style.display='';
+  var d2=document.getElementById('azCursorDot'),r2=document.getElementById('azCursorRing');
+  var p2=document.getElementById('azPinnedRing'),gl2=document.getElementById('azGuide');
+  d2.setAttribute('cx',coords.x.toFixed(1));d2.setAttribute('cy',coords.y.toFixed(1));d2.setAttribute('fill',color);
+  r2.setAttribute('cx',coords.x.toFixed(1));r2.setAttribute('cy',coords.y.toFixed(1));
+  r2.setAttribute('r',(14+rn*12).toFixed(1));r2.setAttribute('stroke',color);
+  p2.style.display='none';
+  var midR=(AZ_RZ1+AZ_RZ2)/2,rad2=(pSeg.angle-90)*Math.PI/180;
+  gl2.setAttribute('x1',coords.x.toFixed(1));gl2.setAttribute('y1',coords.y.toFixed(1));
+  gl2.setAttribute('x2',(AZ_CX+midR*Math.cos(rad2)).toFixed(1));gl2.setAttribute('y2',(AZ_CY+midR*Math.sin(rad2)).toFixed(1));
+  gl2.setAttribute('stroke',pSeg.color);gl2.style.display='';
+}
+
+function azHandleClick(evt){
+  var wrap=document.getElementById('azWheelWrap');if(!wrap)return;
+  var coords=azGetSVGCoords(evt,wrap);
+  var dx=coords.x-AZ_CX,dy=coords.y-AZ_CY;
+  var dist=Math.sqrt(dx*dx+dy*dy),rn=dist/AZ_RO;
+  if(rn>1.15||rn<0.2)return;
+  var angle=(Math.atan2(dy,dx)*180/Math.PI+90+360)%360;
+  var dists=SEG.map(function(s){var d=Math.abs(angle-s.angle)%360;if(d>180)d=360-d;return{s:s,d:d};});
+  dists.sort(function(a,b){return a.d-b.d;});
+  var pSeg=dists[0].s;
+  var iqVal=rn<0.45?17:rn<0.72?50:83;
+  azState.targetSeg=pSeg.id;
+  azState.targetIq=iqVal;
+  document.querySelectorAll('.az-iq-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.getAttribute('data-iq'))===iqVal);});
+  // Sync back to main wheel pinnedInfo
+  pinnedInfo={primary:pSeg,secondary:dists[1].s,primaryWeight:dists[1].d/(dists[0].d+dists[1].d),primaryDist:dists[0].d,iqLevel:[17,50,83].indexOf(iqVal),radiusNorm:rn,type:dists[0].d<22?'pure':'boundary',boundaryKey:[pSeg.id,dists[1].s.id].sort().join('-')};
+  lastInfo=pinnedInfo;
+  azShowPin(coords.x,coords.y,pSeg.color);
+  azRebuildTargetWheel();
+  azUpdateTargetDisplay();
+  azUpdateBtn();
+}
+
+function azInitWheelEvents(){
+  var wrap=document.getElementById('azWheelWrap');if(!wrap)return;
+  var isT=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(isT){
+    wrap.addEventListener('touchstart',function(e){e.preventDefault();azHandleMove(e);},{passive:false});
+    wrap.addEventListener('touchmove',function(e){e.preventDefault();azHandleMove(e);},{passive:false});
+    wrap.addEventListener('touchend',function(e){e.preventDefault();azHandleClick(e);},{passive:false});
+  } else {
+    wrap.addEventListener('mousemove',azHandleMove);
+    wrap.addEventListener('mouseleave',function(){if(!azState.targetSeg)azHideCursor();});
+    wrap.addEventListener('click',azHandleClick);
+  }
+}
+
+function azPickTarget(segId,iqRef){
+  azState.targetSeg=segId;
+  azState.targetIq=iqRef;
+  document.querySelectorAll('.az-iq-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.getAttribute('data-iq'))===iqRef);});
+  azRebuildTargetWheel();
+  azUpdateTargetDisplay();
+  azUpdateBtn();
+}
+
+function azSetIq(iq){
+  azState.targetIq=iq;
+  document.querySelectorAll('.az-iq-btn').forEach(function(b){
+    b.classList.toggle('active',parseInt(b.getAttribute('data-iq'))===iq);
+    if(azState.targetSeg){
+      var seg=SEG.find(function(s){return s.id===azState.targetSeg;});
+      if(b.classList.contains('active'))b.style.color=seg?seg.color:'var(--tx)';
+      else b.style.color='';
+    }
+  });
+  azRebuildTargetWheel();
+  azUpdateTargetDisplay();
+  azUpdateBtn();
+}
+
+function azUpdateTargetDisplay(){
+  if(!azState.targetSeg){
+    document.getElementById('azSegName').textContent=L==='cs'?'Klikni na segment':'Click a segment';
+    document.getElementById('azSegName').style.color='var(--mu)';
+    document.getElementById('azSegSub').textContent=L==='cs'?'— vyber cílový segment —':'— select target segment —';
+    return;
+  }
+  var seg=SEG.find(function(s){return s.id===azState.targetSeg;});
+  var iqTxts=L==='cs'?['Generické','Jasné','Silné']:['Generic','Clear','Distinctive'];
+  var iqIdx=[17,50,83].indexOf(azState.targetIq);
+  document.getElementById('azSegName').textContent=L==='cs'?seg.cz:seg.en;
+  document.getElementById('azSegName').style.color=seg.color;
+  document.getElementById('azSegSub').textContent=(iqTxts[iqIdx]||'IQ '+azState.targetIq)+' · IQ '+azState.targetIq;
+  // color active IQ btn
+  document.querySelectorAll('.az-iq-btn').forEach(function(b){
+    if(b.classList.contains('active'))b.style.color=seg.color;
+    else b.style.color='';
+  });
+}
+
+function azSwitchTab(tab){
+  azState.tab=tab;
+  document.getElementById('azTabTxt').classList.toggle('active',tab==='text');
+  document.getElementById('azTabImg').classList.toggle('active',tab==='image');
+  document.getElementById('azPanelTxt').style.display=tab==='text'?'':'none';
+  document.getElementById('azPanelImg').style.display=tab==='image'?'':'none';
+  azUpdateBtn();
+}
+
+/* dropzone */
+var azDropzone=document.getElementById('azDropzone');
+var azFileInput=document.getElementById('azFileInput');
+azDropzone.addEventListener('click',function(){azFileInput.click();});
+azDropzone.addEventListener('dragover',function(e){e.preventDefault();azDropzone.classList.add('drag-over');});
+azDropzone.addEventListener('dragleave',function(){azDropzone.classList.remove('drag-over');});
+azDropzone.addEventListener('drop',function(e){e.preventDefault();azDropzone.classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))azLoadImage(f);});
+azFileInput.addEventListener('change',function(e){if(e.target.files[0])azLoadImage(e.target.files[0]);});
+function azRemoveImg(){
+  azState.imgB64=null;azState.imgType=null;
+  document.getElementById('azImgPreviewWrap').style.display='none';
+  document.getElementById('azDropzone').style.display='';
+  azUpdateBtn();
+}
+function azLoadImage(file){
+  if(file.size>5*1024*1024){alert('Max 5 MB');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var url=e.target.result;
+    azState.imgB64=url.split(',')[1];azState.imgType=file.type;
+    document.getElementById('azImgPreview').src=url;
+    document.getElementById('azImgPreviewWrap').style.display='';
+    document.getElementById('azDropzone').style.display='none';
+    azUpdateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+function azUpdateBtn(){
+  var hasTarget=!!azState.targetSeg;
+  var hasContent=azState.tab==='text'?document.getElementById('azContentTxt').value.trim().length>5:!!azState.imgB64;
+  var hasKey=!!document.getElementById('apiKey').value.trim();
+  document.getElementById('azRunBtn').disabled=!(hasTarget&&hasContent&&hasKey&&!azState.busy);
+}
+
+/* --- Loading mini wheel --- */
+function azBuildLoadingWheel(){
+  var svg=document.getElementById('azLoadSvg');if(!svg)return;
+  var h='',cx=30,cy=30,ro=27,ri=10;
+  var rings2=[[ri,ri+(ro-ri)*.4],[ri+(ro-ri)*.4,ro]];
+  SEG.forEach(function(s){
+    var sa=s.angle-30,ea=s.angle+30;
+    rings2.forEach(function(rr,ri2){
+      h+='<path d="'+azArc(rr[0],rr[1],sa,ea,cx,cy)+'" fill="'+s.color+'" opacity="'+(ri2===0?0.35:0.65)+'" stroke="#f3f2ee" stroke-width="0.8"/>';
+    });
+  });
+  h+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="#f3f2ee" stroke="rgba(0,0,0,.06)" stroke-width="0.5"/>';
+  svg.innerHTML=h;
+}
+
+/* --- Analyze --- */
+var AZ_SYSTEM='You are an expert NeedScope brand analyst trained in the Kantar NeedScope methodology. Analyze marketing content and determine which NeedScope segment it belongs to.\n\nNEEDSCOPE SEGMENTS:\n\nRE (Relaxing Excitement / Relaxační vzrušení): Carefree, playful, spontaneous, light fun. Impulsive. Short-form video, mobile. Language: fresh, light, surprising. Brands: Kofola, Wolt, Spotify, Fanta.\n\nIE (Intense Experience / Intenzivní zážitek): Raw power, adrenaline, authenticity, no compromises, rebel. Language: bold, provocative, direct, unapologetic. Brands: Red Bull, GoPro, Monster, Under Armour.\n\nUE (Unique Exclusivity / Jedinečná exkluzivita): Status, premium, sophistication, for those who know. Selective, understated luxury. Language: exclusive, limited, crafted, rare. Brands: Apple, Porsche, Nespresso, B&O.\n\nCU (Complete Understanding / Úplné pochopení): Rational, data-driven, expert, transparent. Factual, structured, educational. Language: proven, researched, evidence-based, step-by-step. Brands: IBM, Bloomberg, Alza, Kiwi.com.\n\nCC (Calming Certainty / Uklidňující jistota): Safety, trust, reliability, tradition, family. Reassuring, warm, steady. Language: reliable, trusted, always there, peace of mind. Brands: Česká pojišťovna, Nivea, Kaufland, O2.\n\nFT (Fun Together / Zábava společně): Social bonding, shared joy, family, community, inclusive. Language: together, share, join, whole family. Brands: IKEA, McDonald\'s, Disney, Dedoles.\n\nIQ SCALE (0-100): 0-33 generic, 34-66 clear positioning, 67-100 distinctive ownership.\n\nReturn ONLY valid JSON, no markdown:\n{"primary_segment":"one of RE,IE,UE,CU,CC,FT","secondary_segment":"one of RE,IE,UE,CU,CC,FT or null","iq_estimate":0-100,"confidence":0-100,"key_signals":["signal 1","signal 2","signal 3","signal 4"],"gap_analysis":"2-3 sentences","recommendations":["rec1","rec2","rec3"]}';
+
+async function azAnalyze(){
+  var apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){document.getElementById('gearPanel').classList.add('open');return;}
+  azState.busy=true;azUpdateBtn();
+  // show loading
+  document.getElementById('azEmpty').style.display='none';
+  document.getElementById('azResults').style.display='none';
+  document.getElementById('azLoading').style.display='flex';
+  azBuildLoadingWheel();
+  var loadMsgs=L==='cs'?['Analyzuji obsah...','Mapuji emocionální kódy...','Porovnávám segmenty...','Generuji výsledek...']:['Analysing content...','Mapping emotional codes...','Comparing segments...','Generating result...'];
+  var mi=0;
+  var ti=setInterval(function(){mi=(mi+1)%loadMsgs.length;document.getElementById('azLoadTxt').textContent=loadMsgs[mi];},1400);
+  document.getElementById('azLoadTxt').textContent=loadMsgs[0];
+
+  var tSeg=azState.targetSeg?SEG.find(function(s){return s.id===azState.targetSeg;}):null;
+  var brandCtx=document.getElementById('azBrandCtx').value.trim();
+  var txtContent=document.getElementById('azContentTxt').value.trim();
+  var lang=L==='cs'?'Czech':'English';
+
+  var userMsg;
+  if(azState.tab==='image'&&azState.imgB64){
+    var txt='Analyze this marketing image for NeedScope positioning. Respond in '+lang+'.';
+    if(tSeg)txt+='\nTARGET: '+(L==='cs'?tSeg.cz:tSeg.en)+', IQ target: '+azState.targetIq+'/100';
+    if(brandCtx)txt+='\nBRAND: '+brandCtx;
+    userMsg=[{type:'image',source:{type:'base64',media_type:azState.imgType,data:azState.imgB64}},{type:'text',text:txt}];
+  }else{
+    var txt2='Analyze this marketing text for NeedScope positioning. Respond in '+lang+'.\n\nCONTENT: "'+txtContent+'"';
+    if(tSeg)txt2+='\nTARGET: '+(L==='cs'?tSeg.cz:tSeg.en)+', IQ target: '+azState.targetIq+'/100';
+    if(brandCtx)txt2+='\nBRAND: '+brandCtx;
+    userMsg=txt2;
+  }
+
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:AZ_SYSTEM,messages:[{role:'user',content:userMsg}]})});
+    clearInterval(ti);
+    if(!res.ok){var err=await res.json();throw new Error(err.error&&err.error.message?err.error.message:'HTTP '+res.status);}
+    var data=await res.json();
+    var raw=data.content.map(function(b){return b.text||'';}).join('').replace(/```json|```/g,'').trim();
+    var result=JSON.parse(raw);
+    document.getElementById('azLoading').style.display='none';
+    azShowResults(result);
+  }catch(e){
+    clearInterval(ti);
+    document.getElementById('azLoading').style.display='none';
+    document.getElementById('azEmpty').style.display='flex';
+    document.getElementById('azEmpty').innerHTML='<div class="az-empty-icon" style="border-color:rgba(160,32,40,.3)">⚠</div><div class="az-empty-h" style="color:#a02028">Chyba analýzy</div><p class="az-empty-p">'+e.message+'</p>';
+  }
+  azState.busy=false;azUpdateBtn();
+}
+
+function azShowResults(r){
+  var wrap=document.getElementById('azResults');
+  wrap.style.display='flex';
+  wrap.classList.add('az-fade-up');
+  setTimeout(function(){wrap.classList.remove('az-fade-up');},500);
+
+  var rSeg=SEG.find(function(s){return s.id===r.primary_segment;});
+  var tSeg=azState.targetSeg?SEG.find(function(s){return s.id===azState.targetSeg;}):null;
+  var iqR=Math.round(r.iq_estimate);
+
+  // Draw results wheel
+  azDrawResultWheel(tSeg,azState.targetIq,rSeg,iqR);
+
+  // Consistency score
+  var score,scoreColor;
+  if(tSeg&&rSeg){
+    if(r.primary_segment===azState.targetSeg){
+      score=Math.max(0,Math.round(100-Math.abs(iqR-azState.targetIq)*0.9));
+    }else{
+      var angD=Math.abs(rSeg.angle-tSeg.angle);if(angD>180)angD=360-angD;
+      score=Math.max(0,Math.round(100-(angD/180)*100));
+    }
+    scoreColor=score>=70?'#2a9':score>=40?'#b87800':'#a02028';
+  }else{
+    score=iqR;
+    scoreColor=iqR>=67?'#2a9':iqR>=34?'#b87800':'#88889a';
+  }
+  var sEl=document.getElementById('azScoreNum');
+  sEl.textContent=score+'%';sEl.style.color=scoreColor;
+  document.getElementById('azScoreLbl').textContent=tSeg?(L==='cs'?'Konzistenční skóre':'Consistency score'):(L==='cs'?'Positioning IQ':'Positioning IQ');
+  document.getElementById('azScoreDesc').textContent=tSeg?(score>=70?(L==='cs'?'Obsah odpovídá cílovému positioningu':'Content matches target positioning'):score>=40?(L==='cs'?'Částečná shoda — viz doporučení':'Partial match — see recommendations'):(L==='cs'?('Obsah míří jinam než '+(L==='cs'?rSeg.cz:rSeg.en)):('Content targets '+(L==='cs'?rSeg.cz:rSeg.en)+' instead'))):(iqR>=67?(L==='cs'?'Silné, výrazné pozicionování':'Strong, distinctive positioning'):iqR>=34?(L==='cs'?'Jasné — prostor pro rozvoj':'Clear — room to develop'):(L==='cs'?'Generické — bez výrazné identity':'Generic — no strong identity'));
+
+  // Verdict
+  document.getElementById('azResDot').style.background=rSeg?rSeg.color:'var(--mu)';
+  var nm=document.getElementById('azResName');
+  nm.textContent=rSeg?(L==='cs'?rSeg.cz:rSeg.en):r.primary_segment;
+  nm.style.color=rSeg?rSeg.color:'var(--tx)';
+  document.getElementById('azResEn').textContent=rSeg?(L==='cs'?rSeg.en:rSeg.cz):'';
+  document.getElementById('azConfVal').textContent=Math.round(r.confidence)+'%';
+  document.getElementById('azConfVal').style.color=rSeg?rSeg.color:'var(--tx)';
+
+  // IQ bar
+  var bar=document.getElementById('azIqBar');
+  bar.style.background=rSeg?rSeg.color:'var(--tx)';
+  bar.style.width='0%';
+  setTimeout(function(){bar.style.width=iqR+'%';},80);
+  document.getElementById('azIqVal').textContent=iqR;
+
+  // Signals
+  document.getElementById('azSignals').innerHTML=r.key_signals.map(function(s2){
+    return '<div class="az-signal"><div class="az-sig-dot" style="background:'+(rSeg?rSeg.color:'var(--tx)')+'"></div><div>'+s2+'</div></div>';
+  }).join('');
+
+  // Gap
+  document.getElementById('azGapTxt').textContent=r.gap_analysis;
+
+  // Recs
+  document.getElementById('azRecs').innerHTML=r.recommendations.map(function(rec,i){
+    return '<div class="az-rec"><div class="az-rec-n" style="background:'+(rSeg?rSeg.color:'var(--tx)')+'">'+( i+1)+'</div><div class="az-rec-t">'+rec+'</div></div>';
+  }).join('');
+
+  document.getElementById('azLegContent').style.background=rSeg?rSeg.color:'var(--mu)';
+}
+
+function azDrawResultWheel(tSeg,tIq,rSeg,rIq){
+  var svg=document.getElementById('azResultSvg');
+  var cx=140,cy=140,ro=118,ri=26,rz1=55,rz2=85;
+  function P2(a,r){var rad=(a-90)*Math.PI/180;return[cx+r*Math.cos(rad),cy+r*Math.sin(rad)];}
+  function arc2(r1,r2,sa,ea){
+    var p1=P2(sa,r2),p2=P2(ea,r2),p3=P2(ea,r1),p4=P2(sa,r1);
+    return 'M'+p1[0].toFixed(1)+','+p1[1].toFixed(1)+' A'+r2+','+r2+' 0 0,1 '+p2[0].toFixed(1)+','+p2[1].toFixed(1)+' L'+p3[0].toFixed(1)+','+p3[1].toFixed(1)+' A'+r1+','+r1+' 0 0,0 '+p4[0].toFixed(1)+','+p4[1].toFixed(1)+'Z';
+  }
+  var h='';
+  SEG.forEach(function(s){
+    var sa=s.angle-30,ea=s.angle+30;
+    var isRes=rSeg&&s.id===rSeg.id;
+    h+='<path d="'+arc2(ri,rz1,sa,ea)+'" fill="'+s.color+'" opacity="'+(isRes?0.5:0.12)+'"/>';
+    h+='<path d="'+arc2(rz1,rz2,sa,ea)+'" fill="'+s.color+'" opacity="'+(isRes?0.7:0.18)+'"/>';
+    h+='<path d="'+arc2(rz2,ro,sa,ea)+'" fill="'+s.color+'" opacity="'+(isRes?0.88:0.25)+'"/>';
+    // Separator
+    var boundAngle=s.angle-30,rad=(boundAngle-90)*Math.PI/180;
+    h+='<line x1="'+(cx+ri*Math.cos(rad)).toFixed(1)+'" y1="'+(cy+ri*Math.sin(rad)).toFixed(1)+'" x2="'+(cx+ro*Math.cos(rad)).toFixed(1)+'" y2="'+(cy+ro*Math.sin(rad)).toFixed(1)+'" stroke="#f3f2ee" stroke-width="1.5" pointer-events="none"/>';
+    // Labels
+    var labR=ro+12,lx=(cx+labR*Math.cos((s.angle-90)*Math.PI/180)).toFixed(1),ly=(cy+labR*Math.sin((s.angle-90)*Math.PI/180)).toFixed(1);
+    h+='<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle" fill="'+(rSeg&&s.id===rSeg.id?s.color:'rgba(0,0,0,.2)')+'" font-size="7.5" font-family="DM Mono,monospace" font-weight="500">'+s.id+'</text>';
+  });
+  h+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="#f3f2ee" stroke="rgba(0,0,0,.07)" stroke-width="0.5"/>';
+  // Dashed line between pins
+  if(tSeg&&rSeg){
+    var tf=tIq/100,rf=rIq/100;
+    var tr=ri+(ro-ri)*tf*0.82,rr2=ri+(ro-ri)*rf*0.82;
+    var tp=P2(tSeg.angle,tr),rp=P2(rSeg.angle,rr2);
+    h+='<line x1="'+tp[0].toFixed(1)+'" y1="'+tp[1].toFixed(1)+'" x2="'+rp[0].toFixed(1)+'" y2="'+rp[1].toFixed(1)+'" stroke="rgba(0,0,0,.15)" stroke-width="1" stroke-dasharray="3,2"/>';
+  }
+  // Target pin (diamond)
+  if(tSeg){
+    var tf2=tIq/100,tr2=ri+(ro-ri)*tf2*0.82;
+    var pp=P2(tSeg.angle,tr2);
+    h+='<circle cx="'+pp[0].toFixed(1)+'" cy="'+pp[1].toFixed(1)+'" r="9" fill="'+tSeg.color+'" opacity="0.12"/>';
+    h+='<polygon points="'+pp[0].toFixed(1)+','+(parseFloat(pp[1])-5.5).toFixed(1)+' '+(parseFloat(pp[0])+5).toFixed(1)+','+pp[1].toFixed(1)+' '+pp[0].toFixed(1)+','+(parseFloat(pp[1])+5.5).toFixed(1)+' '+(parseFloat(pp[0])-5).toFixed(1)+','+pp[1].toFixed(1)+'" fill="'+tSeg.color+'" stroke="#f3f2ee" stroke-width="1.5"/>';
+  }
+  // Content pin
+  if(rSeg){
+    var rf2=rIq/100,rr3=ri+(ro-ri)*rf2*0.82;
+    var rp2=P2(rSeg.angle,rr3);
+    h+='<circle cx="'+rp2[0].toFixed(1)+'" cy="'+rp2[1].toFixed(1)+'" r="9" fill="'+rSeg.color+'" opacity="0.15"/>';
+    h+='<circle cx="'+rp2[0].toFixed(1)+'" cy="'+rp2[1].toFixed(1)+'" r="5" fill="'+rSeg.color+'" stroke="#f3f2ee" stroke-width="1.5"/>';
+  }
+  svg.innerHTML=h;
+}
+
+function azReset(){
+  document.getElementById('azResults').style.display='none';
+  document.getElementById('azEmpty').style.display='flex';
+  document.getElementById('azEmpty').innerHTML='<div class="az-empty-icon">◎</div><div class="az-empty-h">'+(L==='cs'?'Připraven k analýze':'Ready to analyse')+'</div><p class="az-empty-p">'+(L==='cs'?'Nastav cílový positioning kliknutím na segment, vlož obsah a klikni Analyzovat.':'Set target positioning by clicking a segment, add content and click Analyse.')+'</p>';
+  document.getElementById('azIqBar').style.width='0%';
+  azUpdateBtn();
+}
+
+/* init analyzer */
+azInitWheelEvents();
+azRebuildTargetWheel();
+azBuildLoadingWheel();
+azUpdateBtn();
+</script>
+
+</body>
+</html>
